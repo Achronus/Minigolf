@@ -42,8 +42,6 @@ The file structure used for the project is outlined below.
 +-- Macros.props
 +-- minigolf.sln
 +-- minigolf.vcxproj
-+-- minigolf.vcxproj.filters
-+-- minigolf.vcxproj.users
 +-- README.md
 ```
 
