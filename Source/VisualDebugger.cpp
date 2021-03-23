@@ -1,6 +1,6 @@
 #include "..\Headers\VisualDebugger.h"
 #include <vector>
-#include "..\Extras\Camera.h"
+#include "..\Headers\Camera.h"
 #include "..\Extras\Renderer.h"
 #include "..\Extras\HUD.h"
 
