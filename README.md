@@ -70,7 +70,7 @@ _Please note: this follows a Windows 10 install process, some of these steps may
 3. Test that the packages have been unpacked succesfully by opening the run window (keyboard shortcut: windows key + r) and copy the below path.
 
     ```bash
-    C:\Program  Files  (x86)\NVIDIA  Corporation\PhysX SDK\PhysX-3.4.2\PxShared\bin\vc15win64
+    C:\Program Files (x86)\NVIDIA Corporation\PhysX SDK\PhysX-3.4.2\PxShared\bin\vc15win64
     ```
 
     If working correctly, proceed to step 4. Otherwise, double check the file paths and folder structure.
@@ -80,7 +80,7 @@ _Please note: this follows a Windows 10 install process, some of these steps may
     Open the Windows Control Panel and select:
 
     ```bash
-    System and Security -> System -> Advanced System Settings -> Environment Variables-> User variables for [user] -> Path -> New
+    System and Security -> System -> Advanced System Settings -> Environment Variables-> User variables -> Path -> New 
     ```
 
     Create the following two required DLL paths:
