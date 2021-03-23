@@ -153,22 +153,24 @@
     <ClCompile Include="Extras\Camera.cpp" />
     <ClCompile Include="Extras\GLFontRenderer.cpp" />
     <ClCompile Include="Extras\Renderer.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="PhysicsEngine.cpp" />
-    <ClCompile Include="VisualDebugger.cpp" />
+    <ClCompile Include="Source\Ball.cpp" />
+    <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\PhysicsEngine.cpp" />
+    <ClCompile Include="Source\VisualDebugger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BasicActors.h" />
-    <ClInclude Include="Exception.h" />
     <ClInclude Include="Extras\Camera.h" />
     <ClInclude Include="Extras\GLFontData.h" />
     <ClInclude Include="Extras\GLFontRenderer.h" />
     <ClInclude Include="Extras\HUD.h" />
     <ClInclude Include="Extras\Renderer.h" />
     <ClInclude Include="Extras\UserData.h" />
-    <ClInclude Include="MyPhysicsEngine.h" />
-    <ClInclude Include="PhysicsEngine.h" />
-    <ClInclude Include="VisualDebugger.h" />
+    <ClInclude Include="Headers\Ball.h" />
+    <ClInclude Include="Headers\BasicActors.h" />
+    <ClInclude Include="Headers\Exception.h" />
+    <ClInclude Include="Headers\MyPhysicsEngine.h" />
+    <ClInclude Include="Headers\PhysicsEngine.h" />
+    <ClInclude Include="Headers\VisualDebugger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

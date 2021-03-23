@@ -1,5 +1,5 @@
 #include <iostream>
-#include "VisualDebugger.h"
+#include "..\Headers\VisualDebugger.h"
 
 using namespace std;
 

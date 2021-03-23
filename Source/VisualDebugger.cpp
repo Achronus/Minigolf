@@ -1,8 +1,8 @@
-#include "VisualDebugger.h"
+#include "..\Headers\VisualDebugger.h"
 #include <vector>
-#include "Extras\Camera.h"
-#include "Extras\Renderer.h"
-#include "Extras\HUD.h"
+#include "..\Extras\Camera.h"
+#include "..\Extras\Renderer.h"
+#include "..\Extras\HUD.h"
 
 namespace VisualDebugger
 {
