@@ -150,16 +150,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Extras\Camera.cpp" />
     <ClCompile Include="Extras\GLFontRenderer.cpp" />
     <ClCompile Include="Extras\Renderer.cpp" />
     <ClCompile Include="Source\Ball.cpp" />
+    <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\PhysicsEngine.cpp" />
     <ClCompile Include="Source\VisualDebugger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Extras\Camera.h" />
     <ClInclude Include="Extras\GLFontData.h" />
     <ClInclude Include="Extras\GLFontRenderer.h" />
     <ClInclude Include="Extras\HUD.h" />
@@ -167,6 +166,7 @@
     <ClInclude Include="Extras\UserData.h" />
     <ClInclude Include="Headers\Ball.h" />
     <ClInclude Include="Headers\BasicActors.h" />
+    <ClInclude Include="Headers\Camera.h" />
     <ClInclude Include="Headers\Exception.h" />
     <ClInclude Include="Headers\MyPhysicsEngine.h" />
     <ClInclude Include="Headers\PhysicsEngine.h" />
