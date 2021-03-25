@@ -30,7 +30,7 @@ namespace VisualDebugger
 	void KeyPress(unsigned char key, int x, int y);
 
 	void motionCallback(int x, int y);
-	void mouseCallback(int button, int state, int x, int y);
+	void onMouseClick(int button, int state, int x, int y);
 	void exitCallback(void);
 
 	void RenderScene();
@@ -47,6 +47,8 @@ namespace VisualDebugger
 	bool key_state[MAX_KEYS];
 	bool hud_show = true;
 	HUD hud;
+	bool leftMouseClicked = false;
+	bool rightMouseClicked = false;
 
 	//Init the debugger
 	void Init(const char *window_name, int width, int height)
@@ -62,7 +64,7 @@ namespace VisualDebugger
 		Renderer::InitWindow(window_name, width, height);
 		Renderer::Init();
 
-		camera = new Camera(PxVec3(0.0f, 5.0f, 15.0f), PxVec3(0.f,-.1f,-1.f), 5.f);
+		camera = new Camera(PxVec3(0.0f, 5.0f, 15.0f), PxVec3(0.f,-.1f,-1.f), 25.f);
 
 		//initialise HUD
 		HUDInit();
@@ -77,8 +79,8 @@ namespace VisualDebugger
 		glutKeyboardUpFunc(KeyRelease);
 
 		//mouse
-		glutMouseFunc(mouseCallback);
-		glutMotionFunc(motionCallback);
+		glutMotionFunc(motionCallback); //detect mouse movement
+		glutMouseFunc(onMouseClick); //detect mouse click
 
 		//exit
 		atexit(exitCallback);
@@ -94,10 +96,9 @@ namespace VisualDebugger
 		hud.AddLine(EMPTY, "");
 		//add a help screen
 		hud.AddLine(HELP, " Simulation");
-		hud.AddLine(HELP, "    F1 - reset");
+		hud.AddLine(HELP, "    F1 - reset level");
 		hud.AddLine(HELP, "    F2 - pause");
-		hud.AddLine(HELP, "    F3 - select next actor");
-		hud.AddLine(HELP, "    F4 - change golf ball");
+		hud.AddLine(HELP, "    F3 - change golf ball");
 		hud.AddLine(HELP, "");
 		hud.AddLine(HELP, " Display");
 		hud.AddLine(HELP, "    F5 - help on/off");
@@ -121,9 +122,8 @@ namespace VisualDebugger
 		hud.AddLine(CUSTOMIZE, "    1 - default");
 		hud.AddLine(CUSTOMIZE, "    2 - sponge");
 		hud.AddLine(CUSTOMIZE, "    3 - rolling pin");
-		hud.AddLine(CUSTOMIZE, "    4 - salt shaker");
 		hud.AddLine(CUSTOMIZE, "");
-		hud.AddLine(CUSTOMIZE, " Customizing ball. Press F4 to return to commands list.");
+		hud.AddLine(CUSTOMIZE, " Changing ball. Press F3 to return to commands list.");
 		//set font size for all screens
 		hud.FontSize(0.018f);
 		//set font color for all screens
@@ -178,35 +178,6 @@ namespace VisualDebugger
 
 		//perform a single simulation step
 		scene->Update(delta_time);
-	}
-
-	//user defined keyboard handlers
-	void UserKeyPress(int key)
-	{
-		switch (toupper(key))
-		{
-		//implement your own
-		case 'R':
-			break;
-		default:
-			break;
-		}
-	}
-
-	void UserKeyRelease(int key)
-	{
-		switch (toupper(key))
-		{
-		//implement your own
-		case 'R':
-			break;
-		default:
-			break;
-		}
-	}
-
-	void UserKeyHold(int key)
-	{
 	}
 
 	//handle camera control keys
@@ -276,42 +247,39 @@ namespace VisualDebugger
 		switch (key)
 		{
 			//display control
-		case GLUT_KEY_F5:
-			//hud on/off
-			hud_show = !hud_show;
-			break;
-		case GLUT_KEY_F6:
-			//shadows on/off
-			Renderer::ShowShadows(!Renderer::ShowShadows());
-			break;
-		case GLUT_KEY_F7:
-			//toggle render mode
-			ToggleRenderMode();
-			break;
-		case GLUT_KEY_F8:
-			//reset camera view
-			camera->Reset();
-			break;
+			case GLUT_KEY_F5:
+				//hud on/off
+				hud_show = !hud_show;
+				break;
+			case GLUT_KEY_F6:
+				//shadows on/off
+				Renderer::ShowShadows(!Renderer::ShowShadows());
+				break;
+			case GLUT_KEY_F7:
+				//toggle render mode
+				ToggleRenderMode();
+				break;
+			case GLUT_KEY_F8:
+				//reset camera view
+				camera->Reset();
+				break;
 
-		//simulation control
-		case GLUT_KEY_F1:
-			//resect scene
-			scene->Reset();
-			break;
-		case GLUT_KEY_F2:
-			//toggle pause scene
-			scene->Pause(!scene->Pause());
-			break;	
-		case GLUT_KEY_F3:
-			//select next actor
-			scene->SelectNextActor();
-			break;
-		case GLUT_KEY_F4:
-			//toggle customize scene
-			scene->Customize(!scene->Customize());
-			break;
-		default:
-			break;
+			//simulation control
+			case GLUT_KEY_F1:
+				//reset scene
+				scene->firstRun = true;
+				scene->Reset();
+				break;
+			case GLUT_KEY_F2:
+				//toggle pause scene
+				scene->Pause(!scene->Pause());
+				break;	
+			case GLUT_KEY_F3:
+				//toggle customize scene
+				scene->Customize(!scene->Customize());
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -324,18 +292,19 @@ namespace VisualDebugger
 
 		key_state[key] = true;
 
-		//exit
+		//change ball type
+		if (scene->Customize())
+			scene->UpdateBall(key);
+
+		//exit (ESC)
 		if (key == 27)
 			exit(0);
-
-		UserKeyPress(key);
 	}
 
 	//handle key release
 	void KeyRelease(unsigned char key, int x, int y)
 	{
 		key_state[key] = false;
-		UserKeyRelease(key);
 	}
 
 	//handle holded keys
@@ -347,7 +316,6 @@ namespace VisualDebugger
 			{
 				CameraInput(i);
 				ForceInput(i);
-				UserKeyHold(i);
 			}
 		}
 	}
@@ -361,16 +329,38 @@ namespace VisualDebugger
 		int dx = mMouseX - x;
 		int dy = mMouseY - y;
 
-		camera->Motion(dx, dy, delta_time);
+		if (leftMouseClicked)
+		{
+
+		}
+		else if (rightMouseClicked)
+		{
+			camera->Motion(dx, dy, delta_time);
+		}
 
 		mMouseX = x;
 		mMouseY = y;
 	}
 
-	void mouseCallback(int button, int state, int x, int y)
+	void onMouseClick(int button, int state, int x, int y)
 	{
-		mMouseX = x;
-		mMouseY = y;
+		if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
+		{
+			leftMouseClicked = true;
+		}
+		else
+		{
+			leftMouseClicked = false;
+		}
+
+		if (state == GLUT_DOWN && button == GLUT_RIGHT_BUTTON)
+		{
+			rightMouseClicked = true;
+		}
+		else
+		{
+			rightMouseClicked = false;
+		}
 	}
 
 	void ToggleRenderMode()

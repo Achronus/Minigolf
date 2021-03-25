@@ -335,7 +335,7 @@ namespace PhysicsEngine
 					{
 						HighlightOff(selected_actor);
 						//select the next actor
-						selected_actor = actors[(i+1)%actors.size()];
+						selected_actor = actors[(i + 1) % actors.size()];
 						break;
 					}
 			}
@@ -351,16 +351,16 @@ namespace PhysicsEngine
 
 	std::vector<PxActor*> Scene::GetAllActors()
 	{
-#if PX_PHYSICS_VERSION < 0x304000 // SDK 3.3
-		physx::PxActorTypeSelectionFlags selection_flag = PxActorTypeSelectionFlag::eRIGID_DYNAMIC | PxActorTypeSelectionFlag::eRIGID_STATIC |
-			PxActorTypeSelectionFlag::eCLOTH;
-#else
-		physx::PxActorTypeFlags selection_flag = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC |
-			PxActorTypeFlag::eCLOTH;
-#endif
-		std::vector<PxActor*> actors(px_scene->getNbActors(selection_flag));
-		px_scene->getActors(selection_flag, (PxActor**)&actors.front(), (PxU32)actors.size());
-		return actors;
+	#if PX_PHYSICS_VERSION < 0x304000 // SDK 3.3
+			physx::PxActorTypeSelectionFlags selection_flag = PxActorTypeSelectionFlag::eRIGID_DYNAMIC | PxActorTypeSelectionFlag::eRIGID_STATIC |
+				PxActorTypeSelectionFlag::eCLOTH;
+	#else
+			physx::PxActorTypeFlags selection_flag = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC |
+				PxActorTypeFlag::eCLOTH;
+	#endif
+			std::vector<PxActor*> actors(px_scene->getNbActors(selection_flag));
+			px_scene->getActors(selection_flag, (PxActor**)&actors.front(), (PxU32)actors.size());
+			return actors;
 	}
 
 	void Scene::HighlightOn(PxRigidDynamic* actor)

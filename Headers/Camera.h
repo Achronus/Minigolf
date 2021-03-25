@@ -2,6 +2,7 @@
 
 #include "foundation/PxTransform.h"
 #include "foundation/PxMat33.h"
+#include <string>
 
 namespace VisualDebugger
 {
@@ -11,8 +12,8 @@ namespace VisualDebugger
 	class Camera
 	{
 	private:
-		PxVec3	eye, eye_init;
-		PxVec3	dir, dir_init;
+		PxVec3 eye, eye_init;
+		PxVec3 dir, dir_init;
 		PxReal speed, speed_init;
 
 	public:
@@ -54,7 +55,5 @@ namespace VisualDebugger
 
 		///move camera down
 		void MoveDown(PxReal delta_time);
-
-		//
 	};
 }
