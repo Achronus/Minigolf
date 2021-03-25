@@ -333,7 +333,6 @@ namespace PhysicsEngine
 				for (unsigned int i = 0; i < actors.size(); i++)
 					if (selected_actor == actors[i])
 					{
-						HighlightOff(selected_actor);
 						//select the next actor
 						selected_actor = actors[(i + 1) % actors.size()];
 						break;
@@ -343,7 +342,6 @@ namespace PhysicsEngine
 			{
 				selected_actor = actors[0];
 			}
-			HighlightOn(selected_actor);
 		}
 		else
 			selected_actor = 0;
