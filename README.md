@@ -2,8 +2,6 @@
 
 This repository focuses on a simple minigolf game with one level, exploring different physics simulation aspects using PhysX 3.4.2. The level takes place on top of a kitchen counter and allows switching between different types of golf balls to complete the level.
 
-[demo placeholder]
-
 ## File Structure
 
 The file structure used for the project is outlined below.
@@ -24,25 +22,28 @@ The file structure used for the project is outlined below.
 |   +-- lib
 |       +-- ...
 +-- Headers
-|   +-- Ball.h
 |   +-- BasicActors.h
 |   +-- Camera.h
+|   +-- CustomCollisions.h
 |   +-- Exception.h
+|   +-- Level.h
 |   +-- MyPhysicsEngine.h
 |   +-- PhysicsEngine.h
 |   +-- VisualDebugger.h
 +-- Source
-|   +-- Ball.cpp
 |   +-- Camera.cpp
+|   +-- CustomCollisions.cpp
+|   +-- Level.cpp
 |   +-- Main.cpp
+|   +-- MyPhysicsEngine.cpp
 |   +-- PhysicsEngine.cpp
 |   +-- VisualDebugger.cpp
 +-- .gitignore
 +-- LICENSE
 +-- Macros.props
++-- README.md
 +-- minigolf.sln
 +-- minigolf.vcxproj
-+-- README.md
 ```
 
 __Key__:
