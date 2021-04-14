@@ -111,25 +111,25 @@ namespace PhysicsEngine
 		return actor;
 	}
 
-	void Actor::Color(PxVec3 new_color, PxU32 shape_index)
+	void Actor::SetColour(PxVec3 new_colour, PxU32 shape_index)
 	{
-		//change color of all shapes
+		//change colour of all shapes
 		if (shape_index == -1)
 		{
-			for (unsigned int i = 0; i < colors.size(); i++)
-				colors[i] = new_color;
+			for (unsigned int i = 0; i < colours.size(); i++)
+				colours[i] = new_colour;
 		}
 		//or only the selected one
-		else if (shape_index < colors.size())
+		else if (shape_index < colours.size())
 		{
-			colors[shape_index] = new_color;
+			colours[shape_index] = new_colour;
 		}
 	}
 
-	const PxVec3* Actor::Color(PxU32 shape_indx)
+	const PxVec3* Actor::GetColour(PxU32 shape_indx)
 	{
-		if (shape_indx < colors.size())
-			return &colors[shape_indx];
+		if (shape_indx < colours.size())
+			return &colours[shape_indx];
 		else 
 			return 0;			
 	}
@@ -169,6 +169,27 @@ namespace PhysicsEngine
 			return std::vector<PxShape*>();
 	}
 
+	void Actor::SetTrigger(bool value, PxU32 shape_index)
+	{
+		std::vector<PxShape*> shape_list = GetShapes(shape_index);
+		for (PxU32 i = 0; i < shape_list.size(); i++)
+		{
+			shape_list[i]->setFlag(PxShapeFlag::eSIMULATION_SHAPE, !value);
+			shape_list[i]->setFlag(PxShapeFlag::eTRIGGER_SHAPE, value);
+		}
+	}
+
+	void Actor::SetupFiltering(PxU32 filterGroup, PxU32 filterMask, PxU32 shape_index)
+	{
+		std::vector<PxShape*> shape_list = GetShapes(shape_index);
+		for (PxU32 i = 0; i < shape_list.size(); i++)
+			shape_list[i]->setSimulationFilterData(PxFilterData(filterGroup, filterMask, 0, 0));
+
+		// PxFilterData(word0, word1, 0, 0)
+		// word0 = own ID
+		// word1 = ID mask to filter pairs that trigger a contact callback
+	}
+
 	void Actor::Name(const string& new_name)
 	{
 		name = new_name;
@@ -183,12 +204,12 @@ namespace PhysicsEngine
 	DynamicActor::DynamicActor(const PxTransform& pose) : Actor()
 	{
 		actor = (PxActor*)GetPhysics()->createRigidDynamic(pose);
-		Name("");
+		Name(name);
 	}
 
 	DynamicActor::~DynamicActor()
 	{
-		for (unsigned int i = 0; i < colors.size(); i++)
+		for (unsigned int i = 0; i < colours.size(); i++)
 			delete (UserData*)GetShape(i)->userData;
 	}
 
@@ -196,11 +217,11 @@ namespace PhysicsEngine
 	{
 		PxShape* shape = ((PxRigidDynamic*)actor)->createShape(geometry,*GetMaterial());
 		PxRigidBodyExt::updateMassAndInertia(*(PxRigidDynamic*)actor, density);
-		colors.push_back(default_color);
-		//pass the color pointers to the renderer
+		colours.push_back(default_colour);
+		//pass the colour pointers to the renderer
 		shape->userData = new UserData();
-		for (unsigned int i = 0; i < colors.size(); i++)
-			((UserData*)GetShape(i)->userData)->color = &colors[i];
+		for (unsigned int i = 0; i < colours.size(); i++)
+			((UserData*)GetShape(i)->userData)->colour = &colours[i];
 	}
 
 	void DynamicActor::SetKinematic(bool value, PxU32 index)
@@ -212,6 +233,17 @@ namespace PhysicsEngine
 #endif
 	}
 
+	void DynamicActor::SetMass(PxReal mass, PxVec3 massSpace)
+	{
+		((PxRigidDynamic*)actor)->setMass(mass);
+		((PxRigidDynamic*)actor)->setMassSpaceInertiaTensor(massSpace);
+	}
+
+	void DynamicActor::SetDamping(PxReal damping)
+	{
+		((PxRigidDynamic*)actor)->setAngularDamping(damping);
+	}
+
 	StaticActor::StaticActor(const PxTransform& pose)
 	{
 		actor = (PxActor*)GetPhysics()->createRigidStatic(pose);
@@ -220,18 +252,18 @@ namespace PhysicsEngine
 
 	StaticActor::~StaticActor()
 	{
-		for (unsigned int i = 0; i < colors.size(); i++)
+		for (unsigned int i = 0; i < colours.size(); i++)
 			delete (UserData*)GetShape(i)->userData;
 	}
 
 	void StaticActor::CreateShape(const PxGeometry& geometry, PxReal density)
 	{
 		PxShape* shape = ((PxRigidStatic*)actor)->createShape(geometry,*GetMaterial());
-		colors.push_back(default_color);
-		//pass the color pointers to the renderer
+		colours.push_back(default_colour);
+		//pass the colour pointers to the renderer
 		shape->userData = new UserData();
-		for (unsigned int i = 0; i < colors.size(); i++)
-			((UserData*)GetShape(i)->userData)->color = &colors[i];
+		for (unsigned int i = 0; i < colours.size(); i++)
+			((UserData*)GetShape(i)->userData)->colour = &colours[i];
 	}
 
 	///Scene methods
@@ -298,6 +330,11 @@ namespace PhysicsEngine
 		pause = value;
 	}
 
+	bool Scene::Pause()
+	{
+		return pause;
+	}
+
 	void Scene::Customize(bool value)
 	{
 		customize = value;
@@ -308,9 +345,23 @@ namespace PhysicsEngine
 		return customize;
 	}
 
-	bool Scene::Pause() 
-	{ 
-		return pause;
+	bool Scene::ReadyCheck(PxVec3& velocity)
+	{
+		if (velocity.magnitude() <= 0.1f) {
+			return true;
+		}
+		else
+			return false;
+	}
+
+	void Scene::AddForce(PxVec3 &force)
+	{
+		GetSelectedActor()->addForce(force);
+	}
+
+	void Scene::AddTorque(PxVec3& torque)
+	{
+		GetSelectedActor()->addTorque(torque);
 	}
 
 	PxRigidDynamic* Scene::GetSelectedActor()
@@ -367,23 +418,23 @@ namespace PhysicsEngine
 		std::vector<PxShape*> shapes(actor->getNbShapes());
 		actor->getShapes((PxShape**)&shapes.front(), (PxU32)shapes.size());
 
-		sactor_color_orig.clear();
+		sactor_colour_orig.clear();
 
 		for (unsigned int i = 0; i < shapes.size(); i++)
 		{
-			PxVec3* color = ((UserData*)shapes[i]->userData)->color;
-			sactor_color_orig.push_back(*color);
-			*color += PxVec3(.2f,.2f,.2f);
+			PxVec3* colour = ((UserData*)shapes[i]->userData)->colour;
+			sactor_colour_orig.push_back(*colour);
+			*colour += PxVec3(.2f,.2f,.2f);
 		}
 	}
 
 	void Scene::HighlightOff(PxRigidDynamic* actor)
 	{
-		//restore the original color
+		//restore the original colour
 		std::vector<PxShape*> shapes(actor->getNbShapes());
 		actor->getShapes((PxShape**)&shapes.front(), (PxU32)shapes.size());
 
 		for (unsigned int i = 0; i < shapes.size(); i++)
-			*((UserData*)shapes[i]->userData)->color = sactor_color_orig[i];
+			*((UserData*)shapes[i]->userData)->colour = sactor_colour_orig[i];
 	}
 }

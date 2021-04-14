@@ -1,170 +1,78 @@
 #pragma once
 
-#include "BasicActors.h"
+#include "Level.h"
+#include "CustomCollisions.h"
 #include <iostream>
 #include <iomanip>
 
 namespace PhysicsEngine
 {
-	using namespace std;
-
-	//list of ball colours
-	static const PxVec3 color_palette[] = {
-		PxVec3(255.f/255.f, 255.f/255.f, 0.f/255.f), // yellow
-		PxVec3(172.f/255.f, 129.f/255.f, 94.f/255.f), // brown
-		PxVec3(255.f/255.f, 255.f/255.f, 255.f/255.f) // white
-	};
-
-	//list of level colours
-	static PxVec3 level_colors[] = {
-		PxVec3(255.f/255.f, 255.f/255.f, 255.f/255.f), // white
-		PxVec3(0.f/255.f, 0.f/255.f, 0.f/255.f), // black
-		PxVec3(192.f/255.f, 192.f/255.f, 192.f/255.f), // silver
-		PxVec3(82.f/255.f, 82.f/255.f, 82.f/255.f) // dark grey
-	};
-
-	//pyramid vertices
-	static PxVec3 pyramid_verts[] = {PxVec3(0,1,0), PxVec3(1,0,0), PxVec3(-1,0,0), PxVec3(0,0,1), PxVec3(0,0,-1)};
-	//pyramid triangles: a list of three vertices for each triangle e.g. the first triangle consists of vertices 1, 4 and 0
-	//vertices have to be specified in a counter-clockwise order to assure the correct shading in rendering
-	static PxU32 pyramid_trigs[] = {1, 4, 0, 3, 1, 0, 2, 3, 0, 4, 2, 0, 3, 2, 1, 2, 4, 1};
-
-	class Pyramid : public ConvexMesh
-	{
-	public:
-		Pyramid(PxTransform pose=PxTransform(PxIdentity), PxReal density=1.f) :
-			ConvexMesh(vector<PxVec3>(begin(pyramid_verts),end(pyramid_verts)), pose, density)
-		{
-		}
-	};
-
-	class PyramidStatic : public TriangleMesh
-	{
-	public:
-		PyramidStatic(PxTransform pose=PxTransform(PxIdentity)) :
-			TriangleMesh(vector<PxVec3>(begin(pyramid_verts),end(pyramid_verts)), vector<PxU32>(begin(pyramid_trigs),end(pyramid_trigs)), pose)
-		{
-		}
-	};
-
 	///Custom scene class
 	class MyScene : public Scene
 	{
 		Plane* plane;
+		StaticBox* tee, *frontWall, *trackEnd, *goalHole;
+		StraightTrack* track1;
+		StraightTrack* track2;
+		StraightTrack* track3;
+		Flag* flag;
+
 		Sphere* golfBall;
 		Capsule* rollingPin;
-		Box* sponge;
-		PxVec3 initialPosition = PxVec3(.0f, .7f, .0f);
+
+		MySimulationEventCallback* my_callback;
+		PxMaterial* ballMaterial = CreateMaterial(.2f, .2f, .1f);
+		float distanceToHole = 0.f;
 
 	public:
+		GolfClub* club;
+		
+		PxVec3 holeLocation = PxVec3(0.f, 2.f, -300.f);
+		PxVec3 startPosition = PxVec3(0.f, 2.1f, 0.f);
+		PxVec3 checkpointPosition = startPosition;
+		int strokesTaken = 0;
 		bool firstRun = true;
+
+		//specify your custom filter shader here
+		//PxDefaultSimulationFilterShader by default
+		MyScene() : Scene() {};
+
 		///A custom scene class
-		void SetVisualisation()
-		{
-			px_scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
-			px_scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
-		}
+		void SetVisualisation();
+
+		//Return actor position and print it to the console
+		PxTransform getActorPosition();
+
+		//Return angular velocity
+		PxVec3 GetAngularVelocity();
+
+		//Print linear velocity to console
+		void printLinearVelocity();
+
+		//Print angular velocity to console
+		void printAngularVelocity();
+
+		//Custom update function
+		virtual void CustomUpdate();
 
 		//Custom scene initialisation
-		virtual void CustomInit() 
-		{
-			SetVisualisation();			
+		virtual void CustomInit();
 
-			GetMaterial()->setDynamicFriction(.2f);
-			GetMaterial()->setStaticFriction(10.f);
+		//Create ball types
+		void CreateBall(PxVec3 position, PxMaterial* material, PxVec3 colour, string name, PxReal damping);
 
-			plane = new Plane();
-			plane->Color(PxVec3(210.f/255.f,210.f/255.f,210.f/255.f));
-			Add(plane);
-
-			//create the level
-			SetLevel(level_colors);
-
-			//add default ball to scene on first run
-			if (firstRun)
-			{
-				//set golf ball
-				golfBall = new Sphere(PxTransform(initialPosition), .5f);
-				golfBall->Color(color_palette[2]);
-				Add(golfBall);
-				firstRun = false;
-			}
-		}
-
-		//set floor tile
-		void floorTile(PxVec3 color, PxVec3 position)
-		{
-			FloorBlock* tile = new FloorBlock(PxTransform(position), PxVec3(2.f, .1f, 2.f));
-			tile->Color(color);
-			Add(tile);
-		}
-
-		//create floor
-		void Floor(PxVec3 mapColors[])
-		{
-			float x;
-			float y = .1;
-			float z = 16;
-			PxVec3 white = mapColors[0];
-			PxVec3 black = mapColors[1];
-			PxVec3 temp;
-
-			//starting floor
-			for (int i = 0; i < 36; i++)
-			{
-				x = -40; //start value
-				for (int j = 0; j < 10; j++)
-				{
-					//create multiple floor blocks
-					floorTile(white, PxVec3(x, y, z)); //white tiles
-					floorTile(black, PxVec3(x + 4, y, z)); //black tiles
-					x += 8;
-				}
-				z -= 4;
-
-				//alternate tile colors
-				temp = black;
-				black = white;
-				white = temp;
-			}
-		}
+		void CreateRollingPin(PxVec3 position, PxVec2 size, PxMaterial* material, PxVec3 colour, string name, PxReal damping);
 
 		//create level
-		void SetLevel(PxVec3 mapColors[])
-		{
-			Floor(mapColors);
-		}
+		void SetLevel();
 
 		//update ball
-		virtual void UpdateBall(unsigned char key)
-		{
-			switch (key)
-			{
-				case 49:
-						Reset();
-						//set golf ball
-						golfBall = new Sphere(PxTransform(initialPosition), .5f);
-						golfBall->Color(color_palette[2]);
-						Add(golfBall);
-						SelectNextActor();
-					break;
-				case 50:
-						Reset();
-						//set sponge
-						sponge = new Box(PxTransform(initialPosition), PxVec3(.8f, 1.f, .2f));
-						sponge->Color(color_palette[0]);
-						Add(sponge);
-						SelectNextActor();
-					break;
-				case 51:
-						Reset();
-						//set rolling pin
-						rollingPin = new Capsule(PxTransform(initialPosition), PxVec2(.3f, 2.f));
-						rollingPin->Color(color_palette[1]);
-						Add(rollingPin);
-						SelectNextActor();
-					break;
-			}
-		}
+		virtual void UpdateBall(unsigned char key);
+
+		//distance from one location to another
+		float Distance(PxVec3 v1, PxVec3 v2);
+
+		//limit club movement
+		void LimitClubHeight();
 	};
 }

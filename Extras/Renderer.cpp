@@ -9,8 +9,8 @@ namespace VisualDebugger
 {
 	namespace Renderer
 	{
-		PxVec3 default_color = PxVec3(0.8f, 0.8f, 0.8f);
-		PxVec3 background_color = PxVec3(0.f,0.f,0.f);
+		PxVec3 default_colour = PxVec3(0.8f, 0.8f, 0.8f);
+		PxVec3 background_colour = PxVec3(0.f,0.f,0.f);
 		int render_detail = 10;
 		bool show_shadows = true;
 
@@ -159,7 +159,7 @@ namespace VisualDebugger
 		void RenderCloth(const PxCloth* cloth)
 		{
 			PxClothMeshDesc* mesh_desc = ((UserData*)cloth->userData)->cloth_mesh_desc;
-			PxVec3* color = ((UserData*)cloth->userData)->color;
+			PxVec3* colour = ((UserData*)cloth->userData)->colour;
 
 			PxU32 quad_count = mesh_desc->quads.count;
 			PxU32* quads = (PxU32*)mesh_desc->quads.data;
@@ -198,7 +198,7 @@ namespace VisualDebugger
 			PxTransform pose = cloth->getGlobalPose();
 			PxMat44 shapePose(pose);
 
-			glColor4f(color->x, color->y, color->z, 1.f);
+			glColor4f(colour->x, colour->y, colour->z, 1.f);
 
 			glPushMatrix();						
 			glMultMatrixf((float*)&shapePose);
@@ -224,7 +224,7 @@ namespace VisualDebugger
 
 		void idleCallback()
 		{
-			glClearColor(background_color.x, background_color.y, background_color.z, 1.f);
+			glClearColor(background_colour.x, background_colour.y, background_colour.z, 1.f);
 			glutPostRedisplay();
 		}
 
@@ -281,14 +281,14 @@ namespace VisualDebugger
 			gluLookAt(cameraEye.x, cameraEye.y, cameraEye.z, cameraEye.x + cameraDir.x, cameraEye.y + cameraDir.y, cameraEye.z + cameraDir.z, 0.f, 1.f, 0.f);
 		}
 
-		void BackgroundColor(const PxVec3& color)
+		void BackgroundColor(const PxVec3& colour)
 		{
-			background_color = color;
+			background_colour = colour;
 		}
 
 		void Render(PxActor** actors, const PxU32 numActors)
 		{
-			PxVec3 shadow_color = default_color*0.9;
+			PxVec3 shadow_colour = default_colour*0.9;
 			for(PxU32 i=0;i<numActors;i++) {
 #if PX_PHYSICS_VERSION < 0x304000 // SDK 3.3
 				if (actors[i]->isCloth()) {
@@ -323,21 +323,21 @@ namespace VisualDebugger
 						glPushMatrix();						
 						glMultMatrixf((float*)&shapePose);
 
-						PxVec3 shape_color = default_color;
+						PxVec3 shape_colour = default_colour;
 
 						if (shape->userData)
 						{
-							shape_color = *(((UserData*)shape->userData)->color);
+							shape_colour = *(((UserData*)shape->userData)->colour);
 							if (h.getType() == PxGeometryType::ePLANE)
 							{
-								shadow_color = shape_color*0.9;
+								shadow_colour = shape_colour*0.9;
 							}
 						}
 
 						if (h.getType() == PxGeometryType::ePLANE)
 							glDisable(GL_LIGHTING);
 
-						glColor4f(shape_color.x, shape_color.y, shape_color.z, 1.f);
+						glColor4f(shape_colour.x, shape_colour.y, shape_colour.z, 1.f);
 
 						RenderGeometry(h);
 
@@ -354,7 +354,7 @@ namespace VisualDebugger
 							glMultMatrixf(shadowMat);
 							glMultMatrixf((float*)&shapePose);
 							glDisable(GL_LIGHTING);
-							glColor4f(shadow_color.x, shadow_color.y, shadow_color.z, 1.f);
+							glColor4f(shadow_colour.x, shadow_colour.y, shadow_colour.z, 1.f);
 							RenderGeometry(h);
 							glEnable(GL_LIGHTING);
 							glPopMatrix();
@@ -407,17 +407,17 @@ namespace VisualDebugger
 				std::vector<float> pVertList(NbPoints*3);
 				std::vector<float> pColorList(NbPoints*4);
 				int vertIndex = 0;
-				int colorIndex = 0;
+				int colourIndex = 0;
 				const physx::PxDebugPoint* Points = data.getPoints();
 				while(NbPoints--)
 				{
 					pVertList[vertIndex++] = Points->pos.x;
 					pVertList[vertIndex++] = Points->pos.y;
 					pVertList[vertIndex++] = Points->pos.z;
-					pColorList[colorIndex++] = (float)((Points->color>>16)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)((Points->color>>8)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)(Points->color&0xff)/255.f;
-					pColorList[colorIndex++] = 1.f;
+					pColorList[colourIndex++] = (float)((Points->color>>16)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)((Points->color>>8)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)(Points->color&0xff)/255.f;
+					pColorList[colourIndex++] = 1.f;
 					Points++;
 				}
 
@@ -432,25 +432,25 @@ namespace VisualDebugger
 				std::vector<float> pVertList(NbLines*3*2);
 				std::vector<float> pColorList(NbLines*4*2);
 				int vertIndex = 0;
-				int colorIndex = 0;
+				int colourIndex = 0;
 				const PxDebugLine* Lines = data.getLines();
 				while(NbLines--)
 				{
 					pVertList[vertIndex++] = Lines->pos0.x;
 					pVertList[vertIndex++] = Lines->pos0.y;
 					pVertList[vertIndex++] = Lines->pos0.z;
-					pColorList[colorIndex++] = (float)((Lines->color0>>16)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)((Lines->color0>>8)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)(Lines->color0&0xff)/255.f;
-					pColorList[colorIndex++] = 1.f;
+					pColorList[colourIndex++] = (float)((Lines->color0>>16)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)((Lines->color0>>8)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)(Lines->color0&0xff)/255.f;
+					pColorList[colourIndex++] = 1.f;
 
 					pVertList[vertIndex++] = Lines->pos1.x;
 					pVertList[vertIndex++] = Lines->pos1.y;
 					pVertList[vertIndex++] = Lines->pos1.z;
-					pColorList[colorIndex++] = (float)((Lines->color1>>16)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)((Lines->color1>>8)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)(Lines->color1&0xff)/255.f;
-					pColorList[colorIndex++] = 1.f;
+					pColorList[colourIndex++] = (float)((Lines->color1>>16)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)((Lines->color1>>8)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)(Lines->color1&0xff)/255.f;
+					pColorList[colourIndex++] = 1.f;
 
 					Lines++;
 				}
@@ -466,7 +466,7 @@ namespace VisualDebugger
 				std::vector<float> pVertList(NbTris*3*3);
 				std::vector<float> pColorList(NbTris*4*3);
 				int vertIndex = 0;
-				int colorIndex = 0;
+				int colourIndex = 0;
 				const PxDebugTriangle* Triangles = data.getTriangles();
 				while(NbTris--)
 				{
@@ -482,20 +482,20 @@ namespace VisualDebugger
 					pVertList[vertIndex++] = Triangles->pos2.y;
 					pVertList[vertIndex++] = Triangles->pos2.z;
 
-					pColorList[colorIndex++] = (float)((Triangles->color0>>16)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)((Triangles->color0>>8)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)(Triangles->color0&0xff)/255.f;
-					pColorList[colorIndex++] = 1.f;
+					pColorList[colourIndex++] = (float)((Triangles->color0>>16)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)((Triangles->color0>>8)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)(Triangles->color0&0xff)/255.f;
+					pColorList[colourIndex++] = 1.f;
 
-					pColorList[colorIndex++] = (float)((Triangles->color1>>16)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)((Triangles->color1>>8)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)(Triangles->color1&0xff)/255.f;
-					pColorList[colorIndex++] = 1.f;
+					pColorList[colourIndex++] = (float)((Triangles->color1>>16)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)((Triangles->color1>>8)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)(Triangles->color1&0xff)/255.f;
+					pColorList[colourIndex++] = 1.f;
 
-					pColorList[colorIndex++] = (float)((Triangles->color2>>16)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)((Triangles->color2>>8)&0xff)/255.f;
-					pColorList[colorIndex++] = (float)(Triangles->color2&0xff)/255.f;
-					pColorList[colorIndex++] = 1.f;
+					pColorList[colourIndex++] = (float)((Triangles->color2>>16)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)((Triangles->color2>>8)&0xff)/255.f;
+					pColorList[colourIndex++] = (float)(Triangles->color2&0xff)/255.f;
+					pColorList[colourIndex++] = 1.f;
 
 					Triangles++;
 				}
@@ -507,9 +507,9 @@ namespace VisualDebugger
 		}
 
 		void RenderText(const std::string& text, const physx::PxVec2& location, 
-			const PxVec3& color, PxReal size)
+			const PxVec3& colour, PxReal size)
 		{
-			GLFontRenderer::setColor(color.x, color.y, color.z, 1.f);
+			GLFontRenderer::setColor(colour.x, colour.y, colour.z, 1.f);
 			GLFontRenderer::setScreenResolution(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 			GLFontRenderer::print(location.x, location.y, size, text.c_str());
 		}

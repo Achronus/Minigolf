@@ -19,6 +19,11 @@ namespace VisualDebugger
 		speed = speed_init;
 	}
 
+	void Camera::FollowBall(PxVec3& _e)
+	{
+		eye = _e;
+	}
+
 	void Camera::Motion(int dx, int dy, PxReal delta_time)
 	{
 		PxVec3 viewY = dir.cross(PxVec3(0,1,0)).getNormalized();

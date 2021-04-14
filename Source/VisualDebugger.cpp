@@ -1,8 +1,8 @@
 #include "..\Headers\VisualDebugger.h"
-#include <vector>
 #include "..\Headers\Camera.h"
 #include "..\Extras\Renderer.h"
 #include "..\Extras\HUD.h"
+#include <vector>
 
 namespace VisualDebugger
 {
@@ -20,8 +20,15 @@ namespace VisualDebugger
 		EMPTY = 0,
 		HELP = 1,
 		PAUSE = 2,
-		CUSTOMIZE = 3
+		CUSTOMIZE = 3,
+		COMPLETE = 4
 	};
+
+	struct directions {
+		float x;
+		float y;
+		float z;
+	} cameraDirection;
 
 	//function declarations
 	void KeyHold();
@@ -41,14 +48,27 @@ namespace VisualDebugger
 	Camera* camera;
 	PhysicsEngine::MyScene* scene;
 	PxReal delta_time = 1.f/60.f;
-	PxReal gForceStrength = 20;
+	
+	PxReal gForceStr = 20;
+	PxReal swingStr = 300;
+
 	RenderMode render_mode = NORMAL;
 	const int MAX_KEYS = 256;
 	bool key_state[MAX_KEYS];
 	bool hud_show = true;
 	HUD hud;
+
 	bool leftMouseClicked = false;
 	bool rightMouseClicked = false;
+	bool aiming = false;
+	bool ready = true;
+
+	PxTransform actorPos;
+	PxVec3 cameraDir;
+
+	///mouse handling
+	int mMouseX = 0;
+	int mMouseY = 0;
 
 	//Init the debugger
 	void Init(const char *window_name, int width, int height)
@@ -64,7 +84,12 @@ namespace VisualDebugger
 		Renderer::InitWindow(window_name, width, height);
 		Renderer::Init();
 
-		camera = new Camera(PxVec3(0.0f, 5.0f, 15.0f), PxVec3(0.f,-.1f,-1.f), 25.f);
+		cameraDirection.x = 0.f;
+		cameraDirection.y = -.5f;
+		cameraDirection.z = -1.f;
+		cameraDir = PxVec3(cameraDirection.x, cameraDirection.y, cameraDirection.z);
+
+		camera = new Camera(PxVec3(0.f, 15.f, 30.f), cameraDir, 25.f);
 
 		//initialise HUD
 		HUDInit();
@@ -86,7 +111,7 @@ namespace VisualDebugger
 		atexit(exitCallback);
 
 		//init motion callback
-		motionCallback(0,0);
+		motionCallback(0, 0);
 	}
 
 	void HUDInit()
@@ -108,10 +133,11 @@ namespace VisualDebugger
 		hud.AddLine(HELP, " Camera");
 		hud.AddLine(HELP, "    W,S,A,D,Q,Z - forward,backward,left,right,up,down");
 		hud.AddLine(HELP, "    mouse + click - change orientation");
+		hud.AddLine(HELP, "    spacebar + hold - follow golfball");
 		hud.AddLine(HELP, "    F8 - reset view");
 		hud.AddLine(HELP, "");
-		hud.AddLine(HELP, " Force (applied to the selected actor)");
-		hud.AddLine(HELP, "    I,K,J,L,U,M - forward,backward,left,right,up,down");
+		hud.AddLine(HELP, " Force (applied to golf club)");
+		hud.AddLine(HELP, "    I,K - swing backward, swing forward");
 		//add a pause screen
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
@@ -120,8 +146,7 @@ namespace VisualDebugger
 		//add a customize screen
 		hud.AddLine(CUSTOMIZE, " Styles");
 		hud.AddLine(CUSTOMIZE, "    1 - default");
-		hud.AddLine(CUSTOMIZE, "    2 - sponge");
-		hud.AddLine(CUSTOMIZE, "    3 - rolling pin");
+		hud.AddLine(CUSTOMIZE, "    2 - rolling pin");
 		hud.AddLine(CUSTOMIZE, "");
 		hud.AddLine(CUSTOMIZE, " Changing ball. Press F3 to return to commands list.");
 		//set font size for all screens
@@ -178,6 +203,13 @@ namespace VisualDebugger
 
 		//perform a single simulation step
 		scene->Update(delta_time);
+
+		//set actor position and ball velocity
+		actorPos = scene->GetSelectedActor()->getGlobalPose();
+		//actorPos = scene->getActorPosition();
+
+		// Check if ball is ready to move
+		ready = scene->ReadyCheck(scene->angularVel);
 	}
 
 	//handle camera control keys
@@ -203,6 +235,8 @@ namespace VisualDebugger
 		case 'Z':
 			camera->MoveDown(delta_time);
 			break;
+		case ' ': // spacebar
+			camera->FollowBall(PxVec3(actorPos.p.x, actorPos.p.y + 7.3f, actorPos.p.z + 20.0f));
 		default:
 			break;
 		}
@@ -218,22 +252,12 @@ namespace VisualDebugger
 		{
 			// Force controls on the selected actor
 		case 'I': //forward
-			scene->GetSelectedActor()->addForce(PxVec3(0,0,-1)*gForceStrength);
+			//scene->GetSelectedActor()->addForce(PxVec3(1,0,0)*gForceStr/2);
+			scene->GetSelectedActor()->addTorque(PxVec3(-1, 0, 0) * (swingStr * gForceStr));
 			break;
 		case 'K': //backward
-			scene->GetSelectedActor()->addForce(PxVec3(0,0,1)*gForceStrength);
-			break;
-		case 'J': //left
-			scene->GetSelectedActor()->addForce(PxVec3(-1,0,0)*gForceStrength);
-			break;
-		case 'L': //right
-			scene->GetSelectedActor()->addForce(PxVec3(1,0,0)*gForceStrength);
-			break;
-		case 'U': //up
-			scene->GetSelectedActor()->addForce(PxVec3(0,1,0)*gForceStrength);
-			break;
-		case 'M': //down
-			scene->GetSelectedActor()->addForce(PxVec3(0,-1,0)*gForceStrength);
+			//scene->GetSelectedActor()->addForce(PxVec3(1,0,0)*gForceStr/2);
+			scene->GetSelectedActor()->addTorque(PxVec3(1, 0, 0) * (swingStr * gForceStr));
 			break;
 		default:
 			break;
@@ -320,18 +344,14 @@ namespace VisualDebugger
 		}
 	}
 
-	///mouse handling
-	int mMouseX = 0;
-	int mMouseY = 0;
-
 	void motionCallback(int x, int y)
 	{
 		int dx = mMouseX - x;
 		int dy = mMouseY - y;
 
-		if (leftMouseClicked)
+		if (leftMouseClicked && !aiming && ready)
 		{
-
+			aiming = true;
 		}
 		else if (rightMouseClicked)
 		{

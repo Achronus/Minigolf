@@ -29,7 +29,7 @@ namespace PhysicsEngine
 	///Create a new material
 	PxMaterial* CreateMaterial(PxReal sf=.0f, PxReal df=.0f, PxReal cr=.0f);
 
-	static const PxVec3 default_color(.8f,.8f,.8f);
+	static const PxVec3 default_colour(.8f,.8f,.8f);
 
 	///Abstract Actor class
 	///Inherit from this class to create your own actors
@@ -37,7 +37,7 @@ namespace PhysicsEngine
 	{
 	protected:
 		PxActor* actor;
-		std::vector<PxVec3> colors;
+		std::vector<PxVec3> colours;
 		std::string name;
 
 	public:
@@ -49,9 +49,9 @@ namespace PhysicsEngine
 
 		PxActor* Get();
 
-		void Color(PxVec3 new_color, PxU32 shape_index=-1);
+		void SetColour(PxVec3 new_colour, PxU32 shape_index=-1);
 
-		const PxVec3* Color(PxU32 shape_indx=0);
+		const PxVec3* GetColour(PxU32 shape_indx=0);
 
 		void Actor::Name(const string& name);
 
@@ -64,6 +64,10 @@ namespace PhysicsEngine
 		std::vector<PxShape*> Actor::GetShapes(PxU32 index=-1);
 
 		virtual void CreateShape(const PxGeometry& geometry, PxReal density) {}
+
+		void SetTrigger(bool value, PxU32 index = -1);
+
+		void SetupFiltering(PxU32 filterGroup, PxU32 filterMask, PxU32 shape_index = -1);
 	};
 
 	class DynamicActor : public Actor
@@ -76,6 +80,10 @@ namespace PhysicsEngine
 		void CreateShape(const PxGeometry& geometry, PxReal density);
 
 		void SetKinematic(bool value, PxU32 index=-1);
+
+		void SetMass(PxReal mass, PxVec3 massSpace);
+
+		void SetDamping(PxReal damping);
 	};
 
 	class StaticActor : public Actor
@@ -101,13 +109,21 @@ namespace PhysicsEngine
 		//selected dynamic actor on the scene
 		PxRigidDynamic* selected_actor;
 		//original and modified colour of the selected actor
-		std::vector<PxVec3> sactor_color_orig;
+		std::vector<PxVec3> sactor_colour_orig;
+		//custom filter shader
+		PxSimulationFilterShader filter_shader;
 
 		void HighlightOn(PxRigidDynamic* actor);
 
 		void HighlightOff(PxRigidDynamic* actor);
 
 	public:
+		PxVec3 linearVel;
+		PxVec3 angularVel;
+		string activeBall;
+
+		Scene(PxSimulationFilterShader custom_filter_shader = PxDefaultSimulationFilterShader) : filter_shader(custom_filter_shader) {}
+
 		///Init the scene
 		void Init();
 
@@ -141,6 +157,15 @@ namespace PhysicsEngine
 		///Get customize
 		bool Customize();
 
+		//Check if ball is ready to move
+		bool ReadyCheck(PxVec3& velocity);
+
+		//Add a force to the selected actor
+		void AddForce(PxVec3& force);
+
+		//Add torque to the selected actor
+		void AddTorque(PxVec3& torque);
+
 		///Get the selected dynamic actor on the scene
 		PxRigidDynamic* GetSelectedActor();
 
@@ -149,5 +174,17 @@ namespace PhysicsEngine
 
 		///a list with all actors
 		std::vector<PxActor*> GetAllActors();
+	};
+
+	///Generic Joint class
+	class Joint
+	{
+	protected:
+		PxJoint* joint;
+
+	public:
+		Joint() : joint(0) {}
+
+		PxJoint* Get() { return joint; }
 	};
 }

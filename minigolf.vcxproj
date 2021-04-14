@@ -122,14 +122,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(PHYSX_SDK)\include;$(PHYSX_SDK)\..\PxShared\include;.\Graphics\include\win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(PHYSX_SDK)\include;$(PHYSX_SDK)\..\PxShared\include;.\Graphics\include\win32;\Source;\Headers</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(PHYSX_SDK)\Lib\vc15win64;$(PHYSX_SDK)\..\PxShared\Lib\vc15win64;.\Graphics\lib\win64\glut</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PHYSX_SDK)\Lib\vc15win64;$(PHYSX_SDK)\..\PxShared\Lib\vc15win64;.\Graphics\lib\win64\glut;\Source;\Headers</AdditionalLibraryDirectories>
       <AdditionalDependencies>PxFoundationDEBUG_$(PlatformTarget).lib;PhysX3DEBUG_$(PlatformTarget).lib;PhysX3ExtensionsDEBUG.lib;PxPvdSDKDEBUG_$(PlatformTarget).lib;PhysX3CommonDEBUG_$(PlatformTarget).lib;PhysX3CookingDEBUG_$(PlatformTarget).lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -152,9 +152,11 @@
   <ItemGroup>
     <ClCompile Include="Extras\GLFontRenderer.cpp" />
     <ClCompile Include="Extras\Renderer.cpp" />
-    <ClCompile Include="Source\Ball.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\CustomCollisions.cpp" />
+    <ClCompile Include="Source\Level.cpp" />
     <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\MyPhysicsEngine.cpp" />
     <ClCompile Include="Source\PhysicsEngine.cpp" />
     <ClCompile Include="Source\VisualDebugger.cpp" />
   </ItemGroup>
@@ -164,10 +166,11 @@
     <ClInclude Include="Extras\HUD.h" />
     <ClInclude Include="Extras\Renderer.h" />
     <ClInclude Include="Extras\UserData.h" />
-    <ClInclude Include="Headers\Ball.h" />
     <ClInclude Include="Headers\BasicActors.h" />
     <ClInclude Include="Headers\Camera.h" />
+    <ClInclude Include="Headers\CustomCollisions.h" />
     <ClInclude Include="Headers\Exception.h" />
+    <ClInclude Include="Headers\Level.h" />
     <ClInclude Include="Headers\MyPhysicsEngine.h" />
     <ClInclude Include="Headers\PhysicsEngine.h" />
     <ClInclude Include="Headers\VisualDebugger.h" />

@@ -23,6 +23,9 @@ namespace VisualDebugger
 		///reset view
 		void Reset();
 
+		//follow ball
+		void FollowBall(PxVec3& _e);
+
 		///handle camera motion
 		void Motion(int dx, int dy, PxReal delta_time);
 
