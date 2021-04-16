@@ -61,9 +61,7 @@ namespace VisualDebugger
 	bool leftMouseClicked = false;
 	bool rightMouseClicked = false;
 	bool aiming = false;
-	bool ready = true;
-
-	PxTransform actorPos;
+	
 	PxVec3 cameraDir;
 
 	///mouse handling
@@ -85,7 +83,7 @@ namespace VisualDebugger
 		Renderer::Init();
 
 		cameraDirection.x = 0.f;
-		cameraDirection.y = -.5f;
+		cameraDirection.y = -.1f;
 		cameraDirection.z = -1.f;
 		cameraDir = PxVec3(cameraDirection.x, cameraDirection.y, cameraDirection.z);
 
@@ -122,8 +120,8 @@ namespace VisualDebugger
 		//add a help screen
 		hud.AddLine(HELP, " Simulation");
 		hud.AddLine(HELP, "    F1 - reset level");
-		hud.AddLine(HELP, "    F2 - pause");
-		hud.AddLine(HELP, "    F3 - change golf ball");
+		hud.AddLine(HELP, "    F2 - change golf ball");
+		hud.AddLine(HELP, "    F3 - pause");
 		hud.AddLine(HELP, "");
 		hud.AddLine(HELP, " Display");
 		hud.AddLine(HELP, "    F5 - help on/off");
@@ -133,22 +131,26 @@ namespace VisualDebugger
 		hud.AddLine(HELP, " Camera");
 		hud.AddLine(HELP, "    W,S,A,D,Q,Z - forward,backward,left,right,up,down");
 		hud.AddLine(HELP, "    mouse + click - change orientation");
-		hud.AddLine(HELP, "    spacebar + hold - follow golfball");
+		hud.AddLine(HELP, "    spacebar + hold - follow golf ball");
 		hud.AddLine(HELP, "    F8 - reset view");
 		hud.AddLine(HELP, "");
-		hud.AddLine(HELP, " Force (applied to golf club)");
+		hud.AddLine(HELP, " Golf Club");
 		hud.AddLine(HELP, "    I,K - swing backward, swing forward");
 		//add a pause screen
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
-		hud.AddLine(PAUSE, "   Simulation paused. Press F2 to continue.");
+		hud.AddLine(PAUSE, "   Simulation paused. Press F3 to continue.");
+		//add level complete screen
+		hud.AddLine(COMPLETE, " Level Complete!");
+		hud.AddLine(COMPLETE, "");
+		hud.AddLine(COMPLETE, " Press F1 to restart the level.");
 		//add a customize screen
 		hud.AddLine(CUSTOMIZE, " Styles");
 		hud.AddLine(CUSTOMIZE, "    1 - default");
 		hud.AddLine(CUSTOMIZE, "    2 - rolling pin");
 		hud.AddLine(CUSTOMIZE, "");
-		hud.AddLine(CUSTOMIZE, " Changing ball. Press F3 to return to commands list.");
+		hud.AddLine(CUSTOMIZE, " Changing ball. Press F2 to return to commands list.");
 		//set font size for all screens
 		hud.FontSize(0.018f);
 		//set font color for all screens
@@ -185,10 +187,15 @@ namespace VisualDebugger
 		//adjust the HUD state
 		if (hud_show)
 		{
-			if (scene->Pause())
+			if (scene->Pause() && !scene->levelComplete)
 				hud.ActiveScreen(PAUSE);
 			else if (scene->Customize())
 				hud.ActiveScreen(CUSTOMIZE);
+			else if (scene->levelComplete) 
+			{
+				hud.ActiveScreen(COMPLETE);
+				scene->Pause(true);
+			}
 			else
 				hud.ActiveScreen(HELP);
 		}
@@ -203,13 +210,6 @@ namespace VisualDebugger
 
 		//perform a single simulation step
 		scene->Update(delta_time);
-
-		//set actor position and ball velocity
-		actorPos = scene->GetSelectedActor()->getGlobalPose();
-		//actorPos = scene->getActorPosition();
-
-		// Check if ball is ready to move
-		ready = scene->ReadyCheck(scene->angularVel);
 	}
 
 	//handle camera control keys
@@ -236,7 +236,7 @@ namespace VisualDebugger
 			camera->MoveDown(delta_time);
 			break;
 		case ' ': // spacebar
-			camera->FollowBall(PxVec3(actorPos.p.x, actorPos.p.y + 7.3f, actorPos.p.z + 20.0f));
+			camera->FollowBall(PxVec3(scene->ballPosition.x, scene->ballPosition.y + 7.3f, scene->ballPosition.z + 20.0f));
 		default:
 			break;
 		}
@@ -252,11 +252,9 @@ namespace VisualDebugger
 		{
 			// Force controls on the selected actor
 		case 'I': //forward
-			//scene->GetSelectedActor()->addForce(PxVec3(1,0,0)*gForceStr/2);
 			scene->GetSelectedActor()->addTorque(PxVec3(-1, 0, 0) * (swingStr * gForceStr));
 			break;
 		case 'K': //backward
-			//scene->GetSelectedActor()->addForce(PxVec3(1,0,0)*gForceStr/2);
 			scene->GetSelectedActor()->addTorque(PxVec3(1, 0, 0) * (swingStr * gForceStr));
 			break;
 		default:
@@ -295,12 +293,12 @@ namespace VisualDebugger
 				scene->Reset();
 				break;
 			case GLUT_KEY_F2:
-				//toggle pause scene
-				scene->Pause(!scene->Pause());
-				break;	
-			case GLUT_KEY_F3:
 				//toggle customize scene
 				scene->Customize(!scene->Customize());
+				break;	
+			case GLUT_KEY_F3:
+				//toggle pause scene
+				scene->Pause(!scene->Pause());
 				break;
 			default:
 				break;
@@ -349,7 +347,7 @@ namespace VisualDebugger
 		int dx = mMouseX - x;
 		int dy = mMouseY - y;
 
-		if (leftMouseClicked && !aiming && ready)
+		if (leftMouseClicked && !aiming && scene->ready)
 		{
 			aiming = true;
 		}

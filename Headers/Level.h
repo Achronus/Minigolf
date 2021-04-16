@@ -34,8 +34,12 @@ namespace PhysicsEngine
 	public:
 		DynamicActor* club;
 
-		GolfClub(PxVec3 colours, PxVec3 position);
+		GolfClub(PxVec3 colour, PxVec3 position);
 
 		void AddToScene(Scene* scene);
+
+		void MoveActor(PxVec3 position);
+
+		PxVec3 GetActorPosition();
 	};
 }

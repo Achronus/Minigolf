@@ -28,11 +28,16 @@ namespace PhysicsEngine
 		px_scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
 	}
 
-	PxTransform MyScene::getActorPosition()
+	PxVec3 MyScene::getActorPosition()
 	{
-		PxTransform actor = GetSelectedActor()->getGlobalPose();
-		printf("actor_pos=%fx, %fy, %fz\n", actor.p.x, actor.p.y, actor.p.z);
+		PxVec3 actor = ((PxRigidDynamic*)golfBall)->getGlobalPose().p;
+		printf("actor_pos=%fx, %fy, %fz\n", actor.x, actor.y, actor.z);
 		return actor;
+	}
+
+	void MyScene::SetAngularVelocity()
+	{
+		angularVel = PxVec3(0.f);
 	}
 
 	PxVec3 MyScene::GetAngularVelocity()
@@ -50,17 +55,81 @@ namespace PhysicsEngine
 		printf("angular_velocity=%fx, %fy, %fz\n", angularVel.x, angularVel.y, angularVel.z);
 	}
 
+	void MyScene::printBallPosition(PxVec3 position)
+	{
+		printf("BallPosition: x=%f, y=%f, z=%f\n", position.x, position.y, position.z);
+	}
+
 	void MyScene::CustomUpdate()
 	{
-		// Set damping to relevant ball
-		if (strcmp(GetSelectedActor()->getName(), "golfBall") == 0) {
-			angularVel = GetSelectedActor()->getAngularVelocity();
-			printAngularVelocity();
+		// Check what ball is active
+		activeActors = GetAllActors();
+		for (int i = 0; i < activeActors.size(); i++)
+		{
+			string name = activeActors[i]->getName();
+			if (!name.empty())
+			{
+				activeActorNames.push_back(name);
+			}
+		}
+
+		// Set ball position to active ball type
+		if (std::find(activeActorNames.begin(), activeActorNames.end(), "golfBall") != activeActorNames.end())
+		{
+			ballPosition = golfBall->GetActorPosition();
+			angularVel = golfBall->GetAngularVelocity();
+			ballName = "golfBall";
+			//printAngularVelocity();
+			//printBallPosition(ballPosition);
+		}
+		else if (std::find(activeActorNames.begin(), activeActorNames.end(), "rollingPin") != activeActorNames.end())
+		{
+			ballPosition = rollingPin->GetActorPosition();
+			angularVel = rollingPin->GetAngularVelocity();
+			ballName = "rollingPin";
+			//printAngularVelocity();
+			//printBallPosition(ballPosition);
+		}
+		activeActorNames.clear(); // reset names in vector
+
+		// Check if ball is ready to move
+		ready = ReadyCheck(angularVel);
+
+		// Check ball distance to hole
+		distanceToHole = Distance(ballPosition, holePosition);
+		printf("strokesTaken=%d, distanceToHole=%f\n", strokesTaken, distanceToHole);
+
+		// Increment hit count
+		if (BallMovingCheck(angularVel) && notIncreased && !changingBall)
+		{
+			// Increment stroke and update bools
+			strokesTaken++;
+			notIncreased = false;
+			clubPosUpdated = false;
+		}
+		else if (!BallMovingCheck(angularVel) && !changingBall)
+		{
+			notIncreased = true;
+		}
+
+		// Check for hole trigger
+		levelComplete = my_callback->inHole;
+
+		// Update checkpoint position
+		if (ready && !BallMovingCheck(angularVel) && !clubPosUpdated)
+		{
+			checkpointPosition = ballPosition;
+			club->MoveActor(PxVec3(clubPosition.x, clubPosition.y, checkpointPosition.z + 1.5));
+			clubPosUpdated = true;
 		}
 	}
 
 	void MyScene::CustomInit()
 	{
+		levelComplete = false;
+		strokesTaken = 0;
+		checkpointPosition = startPosition;
+
 		SetVisualisation();
 
 		//set materials
@@ -73,33 +142,35 @@ namespace PhysicsEngine
 		//create and add plane to scene
 		plane = new Plane();
 		plane->SetColour(PxVec3(209.f / 255.f, 198.f / 255.f, 177.f / 255.f));
-		plane->Name("OutOfBounds");
 		Add(plane);
 
-		//create the level
+		//create the level and ball types
 		SetLevel();
 
 		// Set golf club
-		club = new GolfClub(level_colours[4], PxVec3(2.5f, 7.2f, 2.f));
+		clubPosition = PxVec3(2.5f, 7.f, 2.f);
+		club = new GolfClub(level_colours[4], clubPosition);
 		club->AddToScene(this);
 
 		//add default ball to scene on first run
 		if (firstRun)
 		{
 			//set golf ball
-			CreateBall(startPosition, ballMaterial, colour_palette[2], "golfBall", 0.5);
+			SetAggregateRollingPin();
+			SetAggregateGolfBall();
+			RemoveAggregate(*activeRollingPin);
+			AddAggregate(*activeGolfBall);
 			firstRun = false;
 		}
 	}
 
 	void MyScene::CreateBall(PxVec3 position, PxMaterial* material, PxVec3 colour, string name, PxReal damping)
 	{
-		Sphere* ball = new Sphere(PxTransform(position), .5f);
-		ball->Material(material);
-		ball->SetColour(colour);
-		ball->Name(name);
-		ball->SetDamping(damping);
-		Add(ball);
+	  golfBall = new Sphere(PxTransform(position), .5f);
+		golfBall->Material(material);
+		golfBall->SetColour(colour);
+		golfBall->Name(name);
+		golfBall->SetDamping(damping);
 	}
 
 	void MyScene::CreateRollingPin(PxVec3 position, PxVec2 size, PxMaterial* material, PxVec3 colour, string name, PxReal damping)
@@ -109,20 +180,19 @@ namespace PhysicsEngine
 		rollingPin->SetColour(colour);
 		rollingPin->Name(name);
 		rollingPin->SetDamping(damping);
-		Add(rollingPin);
 	}
 
 	void MyScene::SetLevel()
 	{
 		PxVec3 trackSize = PxVec3(10.f, 3.f, 80.f);
 		PxVec3 trackPos = PxVec3(0.f, 3.f, -70.f);
-		PxVec3* holeLoc = &holeLocation;
+		PxVec3* holeLoc = &holePosition;
 
 		vector<PxVec3> trackColours = { level_colours[5], level_colours[4] };
 		vector<PxVec3> flagColours = { level_colours[4], level_colours[2] };
 
 		// Tee box
-		tee = new StaticBox(PxTransform(PxVec3(0.f, 2.f, 0.f)), PxVec3(1.f, 0.25f, 1.f));
+		tee = new StaticBox(PxTransform(PxVec3(0.f, 2.f, 0.f)), PxVec3(1.f, .05f, 1.f));
 		tee->SetColour(level_colours[4]);
 		Add(tee);
 
@@ -134,11 +204,7 @@ namespace PhysicsEngine
 		frontWall->SetColour(level_colours[4]);
 		Add(frontWall);
 
-		// Second straight
-		track2 = new StraightTrack(trackColours, trackSize, PxVec3(trackPos.x, trackPos.y, -230.f));
-		track2->AddToScene(this);
-
-		trackEnd = new StaticBox(PxTransform(PxVec3(0.f, 0.f, -310.f)), PxVec3(10.f, 3.2f, .8f));
+		trackEnd = new StaticBox(PxTransform(PxVec3(0.f, 0.f, -150.f)), PxVec3(10.f, 3.2f, .8f));
 		trackEnd->SetColour(level_colours[4]);
 		Add(trackEnd);
 
@@ -146,35 +212,58 @@ namespace PhysicsEngine
 		flag = new Flag(flagColours, PxVec3(holeLoc->x, holeLoc->y + 13.f, holeLoc->z));
 		flag->AddToScene(this);
 
-		goalHole = new StaticBox(PxTransform(*holeLoc), PxVec3(3.5f, .15f, 3.5f), 1.0);
+		goalHole = new StaticBox(PxTransform(*holeLoc), PxVec3(2.5f, .15f, 2.5f));
 		goalHole->SetColour(level_colours[4]);
 		goalHole->SetTrigger(true);
 		goalHole->Name("Goal");
 		Add(goalHole);
 	}
 
+	void MyScene::SetAggregateGolfBall()
+	{
+		activeGolfBall = CreateAggregate(1);
+		CreateBall(checkpointPosition, ballMaterial, colour_palette[2], "golfBall", 0.5);
+		activeGolfBall->addActor(*golfBall->Get());
+		AddAggregate(*activeGolfBall);
+		ballExists = true;
+	}
+
+	void MyScene::SetAggregateRollingPin()
+	{
+		activeRollingPin = CreateAggregate(1);
+		CreateRollingPin(checkpointPosition, PxVec2(.5f, 2.f), ballMaterial, colour_palette[1], "rollingPin", 0.5);
+		activeRollingPin->addActor(*rollingPin->Get());
+		AddAggregate(*activeRollingPin);
+		ballExists = true;
+	}
+
 	void MyScene::UpdateBall(unsigned char key) {
 		switch (key)
 		{
 		case 49:
-			Reset();
 			//set golf ball
-			CreateBall(checkpointPosition, ballMaterial, colour_palette[2], "golfBall", 0.5);
+			if (ballExists) 
+			{
+				RemoveAggregate(*activeGolfBall);
+				RemoveAggregate(*activeRollingPin);
+				ballExists = false;
+			}
+			SetAggregateGolfBall();
 			break;
 		case 50:
-			Reset();
 			//set rolling pin
-			CreateRollingPin(checkpointPosition, PxVec2(.3f, 2.f), ballMaterial, colour_palette[1], "golfBall", 0.5);
+			if (ballExists)
+			{
+				RemoveAggregate(*activeRollingPin);
+				RemoveAggregate(*activeGolfBall);
+				ballExists = false;
+			}
+			SetAggregateRollingPin();
 			break;
 		}
 	}
 
 	float MyScene::Distance(PxVec3 v1, PxVec3 v2) {
-		return sqrt(pow(v1.x * v2.x, 2) + pow(v1.y * v2.y, 2) + pow(v1.z * v2.z, 2));
-	}
-
-	void MyScene::LimitClubHeight()
-	{
-
+		return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2));
 	}
 }

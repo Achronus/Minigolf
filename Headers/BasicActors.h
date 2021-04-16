@@ -6,7 +6,6 @@
 
 namespace PhysicsEngine
 {
-
 	///Plane class
 	class Plane : public StaticActor
 	{

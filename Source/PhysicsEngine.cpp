@@ -244,6 +244,16 @@ namespace PhysicsEngine
 		((PxRigidDynamic*)actor)->setAngularDamping(damping);
 	}
 
+	PxVec3 DynamicActor::GetActorPosition()
+	{
+		return ((PxRigidDynamic*)actor)->getGlobalPose().p;
+	}
+
+	PxVec3 DynamicActor::GetAngularVelocity()
+	{
+		return ((PxRigidDynamic*)actor)->getAngularVelocity();
+	}
+
 	StaticActor::StaticActor(const PxTransform& pose)
 	{
 		actor = (PxActor*)GetPhysics()->createRigidStatic(pose);
@@ -314,6 +324,21 @@ namespace PhysicsEngine
 		px_scene->addActor(*actor->Get());
 	}
 
+	void Scene::AddAggregate(PxAggregate& actor)
+	{
+		px_scene->addAggregate(actor);
+	}
+
+	void Scene::RemoveAggregate(PxAggregate& actor)
+	{
+		px_scene->removeAggregate(actor);
+	}
+
+	PxAggregate* Scene::CreateAggregate(PxReal nbActors)
+	{
+		return physics->createAggregate(nbActors, false);
+	}
+
 	PxScene* Scene::Get() 
 	{ 
 		return px_scene; 
@@ -321,6 +346,7 @@ namespace PhysicsEngine
 
 	void Scene::Reset()
 	{
+		Pause(false);
 		px_scene->release();
 		Init();
 	}
@@ -338,6 +364,7 @@ namespace PhysicsEngine
 	void Scene::Customize(bool value)
 	{
 		customize = value;
+		changingBall = value;
 	}
 
 	bool Scene::Customize()
@@ -345,23 +372,30 @@ namespace PhysicsEngine
 		return customize;
 	}
 
+	bool Scene::ChangingBall()
+	{
+		return changingBall;
+	}
+
 	bool Scene::ReadyCheck(PxVec3& velocity)
 	{
-		if (velocity.magnitude() <= 0.1f) {
+		if (velocity.magnitude() <= 0.2f) {
 			return true;
 		}
 		else
 			return false;
 	}
 
-	void Scene::AddForce(PxVec3 &force)
+	bool Scene::BallMovingCheck(PxVec3& velocity)
 	{
-		GetSelectedActor()->addForce(force);
-	}
-
-	void Scene::AddTorque(PxVec3& torque)
-	{
-		GetSelectedActor()->addTorque(torque);
+		if (velocity.magnitude() > 0.01f)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	PxRigidDynamic* Scene::GetSelectedActor()

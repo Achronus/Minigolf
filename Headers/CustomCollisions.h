@@ -6,8 +6,8 @@ namespace PhysicsEngine
 	class MySimulationEventCallback : public PxSimulationEventCallback
 	{
 	public:
-		//an example variable that will be checked in the main simulation loop
 		bool trigger;
+		bool inHole = false;
 
 		MySimulationEventCallback() : trigger(false) {}
 
@@ -26,10 +26,10 @@ namespace PhysicsEngine
 #if PX_PHYSICS_VERSION >= 0x304000
 		virtual void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform* poseBuffer, const PxU32 count) {}
 #endif
-	};
 
-	//A simple filter shader based on PxDefaultSimulationFilterShader - without group filtering
-	static PxFilterFlags CustomFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
-		PxFilterObjectAttributes attributes1, PxFilterData filterData1,
-		PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize);
+		//A simple filter shader based on PxDefaultSimulationFilterShader - without group filtering
+		static PxFilterFlags CustomFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+			PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+			PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize);
+	};
 }

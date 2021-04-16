@@ -55,11 +55,12 @@ namespace PhysicsEngine
 			if (strcmp(pair.triggerActor->getName(), "Goal") == 0)
 			{
 				cerr << "Goal has been reached! Congratulations!" << endl;
+				inHole = true;
 			}
 		}
 	}
 
-	static PxFilterFlags CustomFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+	PxFilterFlags MySimulationEventCallback::CustomFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
 		PxFilterObjectAttributes attributes1, PxFilterData filterData1,
 		PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
 	{

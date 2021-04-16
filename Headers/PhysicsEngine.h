@@ -84,6 +84,10 @@ namespace PhysicsEngine
 		void SetMass(PxReal mass, PxVec3 massSpace);
 
 		void SetDamping(PxReal damping);
+
+		PxVec3 GetActorPosition();
+
+		PxVec3 GetAngularVelocity();
 	};
 
 	class StaticActor : public Actor
@@ -118,6 +122,7 @@ namespace PhysicsEngine
 		void HighlightOff(PxRigidDynamic* actor);
 
 	public:
+		bool changingBall = false;
 		PxVec3 linearVel;
 		PxVec3 angularVel;
 		string activeBall;
@@ -139,6 +144,15 @@ namespace PhysicsEngine
 		///Add actors
 		void Add(Actor* actor);
 
+		//Add an aggregate actor
+		void AddAggregate(PxAggregate& actor);
+
+		//Remove an aggregate actor
+		void RemoveAggregate(PxAggregate& actor);
+
+		//Create an aggregate actor
+		PxAggregate* CreateAggregate(PxReal nbActors);
+
 		///Get the PxScene object
 		PxScene* Get();
 
@@ -157,14 +171,14 @@ namespace PhysicsEngine
 		///Get customize
 		bool Customize();
 
+		//Get change ball
+		bool ChangingBall();
+
 		//Check if ball is ready to move
 		bool ReadyCheck(PxVec3& velocity);
 
-		//Add a force to the selected actor
-		void AddForce(PxVec3& force);
-
-		//Add torque to the selected actor
-		void AddTorque(PxVec3& torque);
+		//Check if ball is moving
+		bool BallMovingCheck(PxVec3& velocity);
 
 		///Get the selected dynamic actor on the scene
 		PxRigidDynamic* GetSelectedActor();

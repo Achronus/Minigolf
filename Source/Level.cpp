@@ -72,4 +72,16 @@ namespace PhysicsEngine
 	{
 		scene->Add(club);
 	}
+
+	void GolfClub::MoveActor(PxVec3 position)
+	{
+		((PxRigidDynamic*)club->Get())->setGlobalPose(PxTransform(position));
+		((PxRigidDynamic*)club->Get())->putToSleep();
+		((PxRigidDynamic*)club->Get())->wakeUp();
+	}
+
+	PxVec3 GolfClub::GetActorPosition()
+	{
+		return ((PxRigidDynamic*)club->Get())->getCMassLocalPose().p;
+	}
 }

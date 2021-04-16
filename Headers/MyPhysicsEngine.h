@@ -13,25 +13,38 @@ namespace PhysicsEngine
 		Plane* plane;
 		StaticBox* tee, *frontWall, *trackEnd, *goalHole;
 		StraightTrack* track1;
-		StraightTrack* track2;
-		StraightTrack* track3;
 		Flag* flag;
-
-		Sphere* golfBall;
-		Capsule* rollingPin;
 
 		MySimulationEventCallback* my_callback;
 		PxMaterial* ballMaterial = CreateMaterial(.2f, .2f, .1f);
-		float distanceToHole = 0.f;
+
+		string ballName;
+		vector<PxActor*> activeActors;
+		vector<string> activeActorNames;
+
+		Sphere* golfBall;
+		Capsule* rollingPin;
+		PxAggregate* activeGolfBall;
+		PxAggregate* activeRollingPin;
+		bool ballExists = false;
+
+		bool notIncreased = true; // Check for stroke counter increase
+		PxVec3 clubPosition;
+		bool clubPosUpdated = false;
 
 	public:
 		GolfClub* club;
 		
-		PxVec3 holeLocation = PxVec3(0.f, 2.f, -300.f);
+		PxVec3 holePosition = PxVec3(0.f, 2.f, -140.f);
 		PxVec3 startPosition = PxVec3(0.f, 2.1f, 0.f);
-		PxVec3 checkpointPosition = startPosition;
+		PxVec3 ballPosition;
+		PxVec3 checkpointPosition;
+
 		int strokesTaken = 0;
+		float distanceToHole = 0.f;
+		bool ready = true;
 		bool firstRun = true;
+		bool levelComplete = false;
 
 		//specify your custom filter shader here
 		//PxDefaultSimulationFilterShader by default
@@ -41,7 +54,10 @@ namespace PhysicsEngine
 		void SetVisualisation();
 
 		//Return actor position and print it to the console
-		PxTransform getActorPosition();
+		PxVec3 getActorPosition();
+
+		//Set the angular velocity
+		void SetAngularVelocity();
 
 		//Return angular velocity
 		PxVec3 GetAngularVelocity();
@@ -51,6 +67,9 @@ namespace PhysicsEngine
 
 		//Print angular velocity to console
 		void printAngularVelocity();
+
+		//Print ball position to console
+		void printBallPosition(PxVec3 position);
 
 		//Custom update function
 		virtual void CustomUpdate();
@@ -66,13 +85,16 @@ namespace PhysicsEngine
 		//create level
 		void SetLevel();
 
+		//create aggregate golf ball
+		void SetAggregateGolfBall();
+
+		//create aggregate rolling pin
+		void SetAggregateRollingPin();
+
 		//update ball
 		virtual void UpdateBall(unsigned char key);
 
-		//distance from one location to another
+		//distance from one point to another
 		float Distance(PxVec3 v1, PxVec3 v2);
-
-		//limit club movement
-		void LimitClubHeight();
 	};
 }
