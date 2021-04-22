@@ -148,8 +148,11 @@ namespace PhysicsEngine
 		SetLevel();
 
 		// Set golf club
-		clubPosition = PxVec3(2.5f, 7.f, 2.f);
-		club = new GolfClub(level_colours[4], clubPosition);
+		vector<PxBoxGeometry> clubParts = { PxBoxGeometry(PxVec3(.5f, 4.5f, .2f)), PxBoxGeometry(PxVec3(.8f, 1.f, .5f)), PxBoxGeometry(2.5f, .5f, .5f) };
+		vector<PxVec3> clubLocalPoses = { PxVec3(-4.7f, 0.f, 0.f), PxVec3(-4.7f, 3.f, 0.f), PxVec3(-2.8f, -4.25f, 0.f) };
+		vector<PxReal> clubShapeDensities = { 1.f, 1.f, .8f };
+		clubPosition = PxVec3(2.5f, 65.1f, 2.f);
+		club = new GolfClub(clubParts, clubLocalPoses, clubShapeDensities, level_colours[4], clubPosition);
 		club->AddToScene(this);
 
 		//add default ball to scene on first run
@@ -184,29 +187,22 @@ namespace PhysicsEngine
 
 	void MyScene::SetLevel()
 	{
-		PxVec3 trackSize = PxVec3(10.f, 3.f, 80.f);
+		PxVec3 trackSize = PxVec3(10.f, .0f, 80.f);
 		PxVec3 trackPos = PxVec3(0.f, 3.f, -70.f);
+		PxReal trackHeight = 30.f;
 		PxVec3* holeLoc = &holePosition;
 
 		vector<PxVec3> trackColours = { level_colours[5], level_colours[4] };
 		vector<PxVec3> flagColours = { level_colours[4], level_colours[2] };
 
 		// Tee box
-		tee = new StaticBox(PxTransform(PxVec3(0.f, 2.f, 0.f)), PxVec3(1.f, .05f, 1.f));
+		tee = new StaticBox(PxTransform(PxVec3(0.f, 60.1f, 0.f)), PxVec3(1.f, .05f, 1.f));
 		tee->SetColour(level_colours[4]);
 		Add(tee);
 
-		// First straight
-		track1 = new StraightTrack(trackColours, trackSize, trackPos);
+		// Counter top
+		track1 = new StraightTrack(trackColours, trackSize, trackPos, trackHeight);
 		track1->AddToScene(this);
-
-		frontWall = new StaticBox(PxTransform(PxVec3(0.f, 0.f, 10.f)), PxVec3(10.f, 3.2f, .8f));
-		frontWall->SetColour(level_colours[4]);
-		Add(frontWall);
-
-		trackEnd = new StaticBox(PxTransform(PxVec3(0.f, 0.f, -150.f)), PxVec3(10.f, 3.2f, .8f));
-		trackEnd->SetColour(level_colours[4]);
-		Add(trackEnd);
 
 		// Hole and flag
 		flag = new Flag(flagColours, PxVec3(holeLoc->x, holeLoc->y + 13.f, holeLoc->z));

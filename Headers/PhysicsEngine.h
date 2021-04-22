@@ -53,10 +53,6 @@ namespace PhysicsEngine
 
 		const PxVec3* GetColour(PxU32 shape_indx=0);
 
-		void Actor::Name(const string& name);
-
-		string Actor::Name();
-
 		void Material(PxMaterial* new_material, PxU32 shape_index=-1);
 
 		PxShape* GetShape(PxU32 index=0);
@@ -68,6 +64,10 @@ namespace PhysicsEngine
 		void SetTrigger(bool value, PxU32 index = -1);
 
 		void SetupFiltering(PxU32 filterGroup, PxU32 filterMask, PxU32 shape_index = -1);
+
+		void Actor::Name(const string& name);
+
+		string Actor::Name();
 	};
 
 	class DynamicActor : public Actor

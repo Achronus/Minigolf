@@ -10,9 +10,8 @@ namespace PhysicsEngine
 
 	public:
 		StaticActor* trackWalls;
-		PxVec3 trackPos;
 
-		StraightTrack(vector<PxVec3> colours, PxVec3 size, PxVec3 position, PxReal height = 1.f, PxReal density = 1.f);
+		StraightTrack(vector<PxVec3> colours, PxVec3 size, PxVec3 pose, PxReal height = 1.f, PxReal density = 1.f);
 
 		void AddToScene(Scene* scene);
 	};
@@ -22,9 +21,8 @@ namespace PhysicsEngine
 	public:
 		Cloth* flag;
 		StaticBox* pole;
-		PxVec3 flagPos;
 
-		Flag(vector<PxVec3> colours, PxVec3 position);
+		Flag(vector<PxVec3> colours, PxVec3 pose);
 
 		void AddToScene(Scene* scene);
 	};
@@ -34,7 +32,7 @@ namespace PhysicsEngine
 	public:
 		DynamicActor* club;
 
-		GolfClub(PxVec3 colour, PxVec3 position);
+		GolfClub(vector<PxBoxGeometry> shapes, vector<PxVec3> positions, vector<PxReal> shapeDensities, PxVec3 colour, PxVec3 mainPose);
 
 		void AddToScene(Scene* scene);
 

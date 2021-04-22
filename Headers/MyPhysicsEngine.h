@@ -11,7 +11,7 @@ namespace PhysicsEngine
 	class MyScene : public Scene
 	{
 		Plane* plane;
-		StaticBox* tee, *frontWall, *trackEnd, *goalHole;
+		StaticBox* tee, *goalHole;
 		StraightTrack* track1;
 		Flag* flag;
 
@@ -35,8 +35,8 @@ namespace PhysicsEngine
 	public:
 		GolfClub* club;
 		
-		PxVec3 holePosition = PxVec3(0.f, 2.f, -140.f);
-		PxVec3 startPosition = PxVec3(0.f, 2.1f, 0.f);
+		PxVec3 holePosition = PxVec3(0.f, 60.1f, -140.f);
+		PxVec3 startPosition = PxVec3(0.f, 60.2f, 0.f);
 		PxVec3 ballPosition;
 		PxVec3 checkpointPosition;
 

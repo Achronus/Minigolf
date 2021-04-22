@@ -54,7 +54,7 @@ namespace PhysicsEngine
 			// Check if goal has been reached
 			if (strcmp(pair.triggerActor->getName(), "Goal") == 0)
 			{
-				cerr << "Goal has been reached! Congratulations!" << endl;
+				cerr << "\nGoal has been reached! Congratulations!" << endl;
 				inHole = true;
 			}
 		}

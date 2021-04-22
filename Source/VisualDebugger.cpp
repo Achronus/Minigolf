@@ -87,7 +87,7 @@ namespace VisualDebugger
 		cameraDirection.z = -1.f;
 		cameraDir = PxVec3(cameraDirection.x, cameraDirection.y, cameraDirection.z);
 
-		camera = new Camera(PxVec3(0.f, 15.f, 30.f), cameraDir, 25.f);
+		camera = new Camera(PxVec3(0.f, 70.f, 30.f), cameraDir, 25.f);
 
 		//initialise HUD
 		HUDInit();
