@@ -5,8 +5,8 @@ namespace PhysicsEngine
 	StraightTrack::StraightTrack(vector<PxVec3> colours, PxVec3 size, PxVec3 pose, PxReal height, PxReal density)
 	{
 		// Set materials
-		floorMat = CreateMaterial(.7f, 1.9f, .01f);
-		wallMat = CreateMaterial(.7f, 1.9f, .01f);
+		PxMaterial* floorMat = CreateMaterial(.7f, 1.9f, .01f);
+		PxMaterial* wallMat = CreateMaterial(.7f, 1.9f, .01f);
 		wallMat->setRestitution(0.9f);
 
 		// Set straight track (floor)
@@ -95,5 +95,33 @@ namespace PhysicsEngine
 	PxVec3 GolfClub::GetActorPosition()
 	{
 		return ((PxRigidDynamic*)club->Get())->getCMassLocalPose().p;
+	}
+
+	Spinner::Spinner(PxVec3 pose, PxReal handleXPose, PxVec2 handleSize, PxVec2 bladeSize, PxReal speed, PxReal thickness, vector<PxVec3> colours)
+	{
+		PxMaterial* Mat = CreateMaterial(1.f, 1.f, .3f);
+
+		handles = new DynamicActor(PxTransform(pose.x, pose.y, pose.z));
+		blade = new DynamicActor(PxTransform(pose.x, pose.y, pose.z));
+
+		handles->CreateShape(PxBoxGeometry(handleSize.x, handleSize.y, thickness), 1.f);
+		handles->CreateShape(PxBoxGeometry(handleSize.x, handleSize.y, thickness), 1.f);
+		handles->GetShape(0)->setLocalPose(PxTransform(handleXPose, pose.y, 0.f)); // right
+		handles->GetShape(1)->setLocalPose(PxTransform(-handleXPose, pose.y, 0.f)); // left
+		handles->SetKinematic(true);
+		handles->SetColour(colours[0]);
+
+		blade->CreateShape(PxBoxGeometry(handleXPose - .5f, 2.5f, thickness/4), 1.f);
+		blade->SetColour(colours[1]);
+		blade->Material(Mat);
+
+		joint = new RevoluteJoint(handles, PxTransform(PxVec3(0.f, pose.y, 0.f)), blade, PxTransform(PxVec3(0.f, 0.f, 0.f)));
+		joint->DriveVelocity(speed);
+	}
+
+	void Spinner::AddToScene(Scene* scene)
+	{
+		scene->Add(handles);
+		scene->Add(blade);
 	}
 }

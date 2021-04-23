@@ -79,6 +79,7 @@ namespace PhysicsEngine
 			ballPosition = golfBall->GetActorPosition();
 			angularVel = golfBall->GetAngularVelocity();
 			ballName = "golfBall";
+			ForceStop(golfBall->Get());
 			//printAngularVelocity();
 			//printBallPosition(ballPosition);
 		}
@@ -87,6 +88,7 @@ namespace PhysicsEngine
 			ballPosition = rollingPin->GetActorPosition();
 			angularVel = rollingPin->GetAngularVelocity();
 			ballName = "rollingPin";
+			ForceStop(rollingPin->Get());
 			//printAngularVelocity();
 			//printBallPosition(ballPosition);
 		}
@@ -99,13 +101,17 @@ namespace PhysicsEngine
 		distanceToHole = Distance(ballPosition, holePosition);
 		printf("strokesTaken=%d, distanceToHole=%f\n", strokesTaken, distanceToHole);
 
-		// Increment hit count
+		// Increment hit count when: 
+		// - Ball is moving 
+		// - Count hasn't been increased
+		// - Ball isn't being changed
 		if (BallMovingCheck(angularVel) && notIncreased && !changingBall)
 		{
 			// Increment stroke and update bools
 			strokesTaken++;
 			notIncreased = false;
 			clubPosUpdated = false;
+			forceStop = true;
 		}
 		else if (!BallMovingCheck(angularVel) && !changingBall)
 		{
@@ -144,9 +150,6 @@ namespace PhysicsEngine
 		plane->SetColour(PxVec3(209.f / 255.f, 198.f / 255.f, 177.f / 255.f));
 		Add(plane);
 
-		//create the level and ball types
-		SetLevel();
-
 		// Set golf club
 		vector<PxBoxGeometry> clubParts = { PxBoxGeometry(PxVec3(.5f, 4.5f, .2f)), PxBoxGeometry(PxVec3(.8f, 1.f, .5f)), PxBoxGeometry(2.5f, .5f, .5f) };
 		vector<PxVec3> clubLocalPoses = { PxVec3(-4.7f, 0.f, 0.f), PxVec3(-4.7f, 3.f, 0.f), PxVec3(-2.8f, -4.25f, 0.f) };
@@ -154,6 +157,9 @@ namespace PhysicsEngine
 		clubPosition = PxVec3(2.5f, 65.1f, 2.f);
 		club = new GolfClub(clubParts, clubLocalPoses, clubShapeDensities, level_colours[4], clubPosition);
 		club->AddToScene(this);
+
+		//create the level and ball types
+		SetLevel();
 
 		//add default ball to scene on first run
 		if (firstRun)
@@ -194,6 +200,7 @@ namespace PhysicsEngine
 
 		vector<PxVec3> trackColours = { level_colours[5], level_colours[4] };
 		vector<PxVec3> flagColours = { level_colours[4], level_colours[2] };
+		vector<PxVec3> spinnerColours = { level_colours[4], level_colours[3] };
 
 		// Tee box
 		tee = new StaticBox(PxTransform(PxVec3(0.f, 60.1f, 0.f)), PxVec3(1.f, .05f, 1.f));
@@ -213,6 +220,13 @@ namespace PhysicsEngine
 		goalHole->SetTrigger(true);
 		goalHole->Name("Goal");
 		Add(goalHole);
+
+		// Spinners
+		spinner1 = new Spinner(PxVec3(0.f, 31.5f, -20.f), 9.4f, PxVec2(.5f, 3.f), PxVec2(7.5f, 2.5f), -1.f, .5f, spinnerColours);
+		spinner1->AddToScene(this);
+
+		spinner2 = new Spinner(PxVec3(0.f, 31.5f, -80.f), 9.4f, PxVec2(.5f, 3.f), PxVec2(7.5f, 2.5f), -1.f, .5f, spinnerColours);
+		spinner2->AddToScene(this);
 	}
 
 	void MyScene::SetAggregateGolfBall()
@@ -256,6 +270,15 @@ namespace PhysicsEngine
 			}
 			SetAggregateRollingPin();
 			break;
+		}
+	}
+
+	void MyScene::ForceStop(PxActor* actor)
+	{
+		if (ready && forceStop)
+		{
+			((PxRigidDynamic*)actor)->putToSleep();
+			forceStop = false;
 		}
 	}
 

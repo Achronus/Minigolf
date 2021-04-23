@@ -379,7 +379,7 @@ namespace PhysicsEngine
 
 	bool Scene::ReadyCheck(PxVec3& velocity)
 	{
-		if (velocity.magnitude() <= 0.2f) {
+		if (velocity.magnitude() <= 0.12f) {
 			return true;
 		}
 		else

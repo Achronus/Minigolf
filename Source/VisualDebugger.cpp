@@ -248,17 +248,21 @@ namespace VisualDebugger
 		if (!scene->GetSelectedActor())
 			return;
 
-		switch (toupper(key))
+		if (scene->ready)
 		{
-			// Force controls on the selected actor
-		case 'I': //forward
-			scene->GetSelectedActor()->addTorque(PxVec3(-1, 0, 0) * (swingStr * gForceStr));
-			break;
-		case 'K': //backward
-			scene->GetSelectedActor()->addTorque(PxVec3(1, 0, 0) * (swingStr * gForceStr));
-			break;
-		default:
-			break;
+			switch (toupper(key))
+			{
+				// Force controls on the selected actor
+			case 'I': //forward
+				scene->GetSelectedActor()->addTorque(PxVec3(-1, 0, 0) * (swingStr * gForceStr));
+				scene->GetSelectedActor()->addForce(PxVec3(-1, 0, 0) * gForceStr);
+				break;
+			case 'K': //backward
+				scene->GetSelectedActor()->addTorque(PxVec3(1, 0, 0) * (swingStr * gForceStr));
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
@@ -347,11 +351,7 @@ namespace VisualDebugger
 		int dx = mMouseX - x;
 		int dy = mMouseY - y;
 
-		if (leftMouseClicked && !aiming && scene->ready)
-		{
-			aiming = true;
-		}
-		else if (rightMouseClicked)
+		if (rightMouseClicked)
 		{
 			camera->Motion(dx, dy, delta_time);
 		}

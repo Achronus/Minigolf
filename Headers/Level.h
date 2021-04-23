@@ -5,8 +5,6 @@ namespace PhysicsEngine
 	class StraightTrack
 	{
 		StaticActor* track;
-		PxMaterial* floorMat;
-		PxMaterial* wallMat;
 
 	public:
 		StaticActor* trackWalls;
@@ -39,5 +37,17 @@ namespace PhysicsEngine
 		void MoveActor(PxVec3 position);
 
 		PxVec3 GetActorPosition();
+	};
+
+	class Spinner
+	{
+		DynamicActor* handles;
+		DynamicActor* blade;
+		RevoluteJoint* joint;
+
+	public:
+		Spinner(PxVec3 pose, PxReal handleXPose, PxVec2 handleSize, PxVec2 bladeSize, PxReal speed, PxReal thickness, vector<PxVec3> colours);
+
+		void AddToScene(Scene* scene);
 	};
 }

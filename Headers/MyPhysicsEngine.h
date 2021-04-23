@@ -11,12 +11,13 @@ namespace PhysicsEngine
 	class MyScene : public Scene
 	{
 		Plane* plane;
-		StaticBox* tee, *goalHole;
+		StaticBox *tee, *goalHole;
 		StraightTrack* track1;
 		Flag* flag;
+		Spinner *spinner1, *spinner2;
 
 		MySimulationEventCallback* my_callback;
-		PxMaterial* ballMaterial = CreateMaterial(.2f, .2f, .1f);
+		PxMaterial* ballMaterial = CreateMaterial(.2f, .4f, .1f); // sf, df, r
 
 		string ballName;
 		vector<PxActor*> activeActors;
@@ -36,7 +37,7 @@ namespace PhysicsEngine
 		GolfClub* club;
 		
 		PxVec3 holePosition = PxVec3(0.f, 60.1f, -140.f);
-		PxVec3 startPosition = PxVec3(0.f, 60.2f, 0.f);
+		PxVec3 startPosition = PxVec3(0.f, 60.7f, 0.f);
 		PxVec3 ballPosition;
 		PxVec3 checkpointPosition;
 
@@ -45,6 +46,7 @@ namespace PhysicsEngine
 		bool ready = true;
 		bool firstRun = true;
 		bool levelComplete = false;
+		bool forceStop = true;
 
 		//specify your custom filter shader here
 		//PxDefaultSimulationFilterShader by default
@@ -93,6 +95,9 @@ namespace PhysicsEngine
 
 		//update ball
 		virtual void UpdateBall(unsigned char key);
+
+		//forcefully stop ball from moving
+		void ForceStop(PxActor* actor);
 
 		//distance from one point to another
 		float Distance(PxVec3 v1, PxVec3 v2);
