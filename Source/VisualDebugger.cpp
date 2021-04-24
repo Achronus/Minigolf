@@ -3,6 +3,8 @@
 #include "..\Extras\Renderer.h"
 #include "..\Extras\HUD.h"
 #include <vector>
+#include <iomanip>
+#include <sstream>
 
 namespace VisualDebugger
 {
@@ -63,6 +65,7 @@ namespace VisualDebugger
 	bool aiming = false;
 	
 	PxVec3 cameraDir;
+	PxVec3 ballEye;
 
 	///mouse handling
 	int mMouseX = 0;
@@ -112,12 +115,20 @@ namespace VisualDebugger
 		motionCallback(0, 0);
 	}
 
-	void HUDInit()
+	// Create statistics screen
+	void HelpScreen(int strokes, double distance, double speed)
 	{
-		//initialise HUD
-		//add an empty screen
-		hud.AddLine(EMPTY, "");
-		//add a help screen
+		// Set statistic variables
+		std::stringstream d, st, sp;
+		st << std::fixed << std::setprecision(2) << strokes;
+		d << std::fixed  << std::setprecision(2) << distance;
+		sp << std::fixed << std::setprecision(2) << speed;
+
+		hud.AddLine(HELP, " Statistics");
+		hud.AddLine(HELP, "  Strokes taken: " + st.str());
+		hud.AddLine(HELP, "  Distance to hole: " + d.str());
+		hud.AddLine(HELP, "  Ball speed: " + sp.str());
+		hud.AddLine(HELP, "");
 		hud.AddLine(HELP, " Simulation");
 		hud.AddLine(HELP, "    F1 - reset level");
 		hud.AddLine(HELP, "    F2 - change golf ball");
@@ -131,20 +142,38 @@ namespace VisualDebugger
 		hud.AddLine(HELP, " Camera");
 		hud.AddLine(HELP, "    W,S,A,D,Q,Z - forward,backward,left,right,up,down");
 		hud.AddLine(HELP, "    mouse + click - change orientation");
-		hud.AddLine(HELP, "    spacebar + hold - follow golf ball");
+		hud.AddLine(HELP, "    F4 - follow ball on/off");
 		hud.AddLine(HELP, "    F8 - reset view");
 		hud.AddLine(HELP, "");
 		hud.AddLine(HELP, " Golf Club");
 		hud.AddLine(HELP, "    I,K - swing backward, swing forward");
+	}
+
+	void CompleteScreen(int strokes)
+	{
+		std::stringstream st;
+		st << std::fixed << std::setprecision(2) << strokes;
+
+		hud.AddLine(COMPLETE, " Level Complete!");
+		hud.AddLine(COMPLETE, "  Total strokes taken: " + st.str());
+		hud.AddLine(COMPLETE, "");
+		hud.AddLine(COMPLETE, " Press F1 to restart the level.");
+	}
+
+	void HUDInit()
+	{
+		//initialise HUD
+		//add an empty screen
+		hud.AddLine(EMPTY, "");
+		//add a help screen
+		HelpScreen(scene->strokesTaken, scene->distanceToHole, scene->ballSpeed);
 		//add a pause screen
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "   Simulation paused. Press F3 to continue.");
 		//add level complete screen
-		hud.AddLine(COMPLETE, " Level Complete!");
-		hud.AddLine(COMPLETE, "");
-		hud.AddLine(COMPLETE, " Press F1 to restart the level.");
+		CompleteScreen(scene->strokesTaken);
 		//add a customize screen
 		hud.AddLine(CUSTOMIZE, " Styles");
 		hud.AddLine(CUSTOMIZE, "    1 - default");
@@ -191,13 +220,17 @@ namespace VisualDebugger
 				hud.ActiveScreen(PAUSE);
 			else if (scene->Customize())
 				hud.ActiveScreen(CUSTOMIZE);
-			else if (scene->levelComplete) 
-			{
+			else if (scene->levelComplete) {
+				CompleteScreen(scene->strokesTaken);
 				hud.ActiveScreen(COMPLETE);
 				scene->Pause(true);
 			}
-			else
+			else {
+				// Reset stats in help screen every iteration
+				hud.Clear(HELP);
+				HelpScreen(scene->strokesTaken, scene->distanceToHole, scene->ballSpeed);
 				hud.ActiveScreen(HELP);
+			}
 		}
 		else
 			hud.ActiveScreen(EMPTY);
@@ -210,6 +243,14 @@ namespace VisualDebugger
 
 		//perform a single simulation step
 		scene->Update(delta_time);
+
+		//follow ball when toggle active
+		ballEye = PxVec3(
+			scene->ballPosition.x, 
+			scene->ballPosition.y + 7.3f, 
+			scene->ballPosition.z + 20.f
+		);
+		camera->FollowBall(ballEye);
 	}
 
 	//handle camera control keys
@@ -235,8 +276,6 @@ namespace VisualDebugger
 		case 'Z':
 			camera->MoveDown(delta_time);
 			break;
-		case ' ': // spacebar
-			camera->FollowBall(PxVec3(scene->ballPosition.x, scene->ballPosition.y + 7.3f, scene->ballPosition.z + 20.0f));
 		default:
 			break;
 		}
@@ -304,6 +343,9 @@ namespace VisualDebugger
 				//toggle pause scene
 				scene->Pause(!scene->Pause());
 				break;
+			case GLUT_KEY_F4:
+				//toggle ball follow
+				camera->FollowBallToggle(!camera->FollowBallToggle());
 			default:
 				break;
 		}

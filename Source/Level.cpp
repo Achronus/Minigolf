@@ -50,7 +50,7 @@ namespace PhysicsEngine
 		pole->SetColour(colours[0]);
 
 		// Set flag cloth
-		flag = new Cloth(PxTransform(PxVec3(pose.x + .5f, pose.y + .5f, pose.z + .5f), PxQuat(PxPi / 2, PxVec3(0.f, 0.f, 1.f))), PxVec2(8.f, 8.f), 40, 40);
+		flag = new Cloth(PxTransform(PxVec3(pose.x + .5f, pose.y + .5f, pose.z + .5f), PxQuat(PxHalfPi, PxVec3(0, 0, 1))), PxVec2(8.f, 8.f), 40, 40);
 		((PxCloth*)flag->Get())->setExternalAcceleration(PxVec3(25.f, 0.f, 0.f));
 		flag->SetColour(colours[1]);
 		flag->Name("Flag");

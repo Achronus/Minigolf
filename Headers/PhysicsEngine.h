@@ -175,7 +175,7 @@ namespace PhysicsEngine
 		bool ChangingBall();
 
 		//Check if ball is ready to move
-		bool ReadyCheck(PxVec3& velocity);
+		bool ReadyCheck(PxVec3& velocity, float threshold);
 
 		//Check if ball is moving
 		bool BallMovingCheck(PxVec3& velocity);

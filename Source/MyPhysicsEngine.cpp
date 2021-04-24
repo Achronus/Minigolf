@@ -95,11 +95,11 @@ namespace PhysicsEngine
 		activeActorNames.clear(); // reset names in vector
 
 		// Check if ball is ready to move
-		ready = ReadyCheck(angularVel);
+		ready = ReadyCheck(angularVel, threshold);
 
-		// Check ball distance to hole
+		// Calculate ball distance to hole and ball speed
 		distanceToHole = Distance(ballPosition, holePosition);
-		printf("strokesTaken=%d, distanceToHole=%f\n", strokesTaken, distanceToHole);
+		ballSpeed = AverageVelocity(angularVel, threshold);
 
 		// Increment hit count when: 
 		// - Ball is moving 
@@ -133,7 +133,6 @@ namespace PhysicsEngine
 	void MyScene::CustomInit()
 	{
 		levelComplete = false;
-		strokesTaken = 0;
 		checkpointPosition = startPosition;
 
 		SetVisualisation();
@@ -284,5 +283,13 @@ namespace PhysicsEngine
 
 	float MyScene::Distance(PxVec3 v1, PxVec3 v2) {
 		return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2));
+	}
+
+	float MyScene::AverageVelocity(PxVec3 velocity, float threshold)
+	{
+		if (velocity.x == 0.f || velocity.y == 0.f || velocity.z == 0.f)
+			return 0.f;
+		else
+			return abs(abs(velocity.x + velocity.y + velocity.z) - threshold);
 	}
 }

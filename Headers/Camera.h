@@ -17,6 +17,8 @@ namespace VisualDebugger
 		PxReal speed, speed_init;
 
 	public:
+		bool ballFollow = false;
+
 		///constructor
 		Camera(const PxVec3& _eye, const PxVec3& _dir, const PxReal _speed);
 
@@ -25,6 +27,12 @@ namespace VisualDebugger
 
 		//follow ball
 		void FollowBall(PxVec3& _e);
+
+		//follow ball toggle
+		void FollowBallToggle(bool value);
+
+		//return ball follow value
+		bool FollowBallToggle();
 
 		///handle camera motion
 		void Motion(int dx, int dy, PxReal delta_time);

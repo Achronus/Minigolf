@@ -302,7 +302,6 @@ namespace PhysicsEngine
 
 		pause = false;
 		customize = false;
-
 		selected_actor = 0;
 
 		SelectNextActor();
@@ -377,9 +376,9 @@ namespace PhysicsEngine
 		return changingBall;
 	}
 
-	bool Scene::ReadyCheck(PxVec3& velocity)
+	bool Scene::ReadyCheck(PxVec3& velocity, float threshold)
 	{
-		if (velocity.magnitude() <= 0.12f) {
+		if (velocity.magnitude() <= threshold) {
 			return true;
 		}
 		else

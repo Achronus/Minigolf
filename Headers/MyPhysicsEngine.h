@@ -32,6 +32,7 @@ namespace PhysicsEngine
 		bool notIncreased = true; // Check for stroke counter increase
 		PxVec3 clubPosition;
 		bool clubPosUpdated = false;
+		float threshold = 0.15f; // ready check
 
 	public:
 		GolfClub* club;
@@ -42,7 +43,8 @@ namespace PhysicsEngine
 		PxVec3 checkpointPosition;
 
 		int strokesTaken = 0;
-		float distanceToHole = 0.f;
+		double distanceToHole = 0.f;
+		double ballSpeed = 0.f;
 		bool ready = true;
 		bool firstRun = true;
 		bool levelComplete = false;
@@ -101,5 +103,8 @@ namespace PhysicsEngine
 
 		//distance from one point to another
 		float Distance(PxVec3 v1, PxVec3 v2);
+
+		//calculate balls average velocity
+		float AverageVelocity(PxVec3 velocity, float threshold);
 	};
 }

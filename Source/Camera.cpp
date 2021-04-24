@@ -21,7 +21,20 @@ namespace VisualDebugger
 
 	void Camera::FollowBall(PxVec3& _e)
 	{
-		eye = _e;
+		if (ballFollow)
+		{
+			eye = _e;
+		}
+	}
+
+	void Camera::FollowBallToggle(bool value)
+	{
+		ballFollow = value;
+	}
+
+	bool Camera::FollowBallToggle()
+	{
+		return ballFollow;
 	}
 
 	void Camera::Motion(int dx, int dy, PxReal delta_time)
@@ -57,7 +70,7 @@ namespace VisualDebugger
 	{
 		PxVec3 viewY = dir.cross(PxVec3(0,1,0));
 
-		if(viewY.normalize()<1e-6f) 
+		if(viewY.normalize() < 1e-6f) 
 			return PxTransform(eye);
 
 		PxMat33 m(dir.cross(viewY), viewY, -dir);
