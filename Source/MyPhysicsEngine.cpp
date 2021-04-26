@@ -22,6 +22,16 @@ namespace PhysicsEngine
 		PxVec3(239.f / 255.f, 241.f / 255.f, 240.f / 255.f) // light-silver
 	};
 
+	struct FilterGroup
+	{
+		enum Enum
+		{
+			eCLUB = (1 << 0),
+			eBALL = (1 << 1),
+			eRPIN = (1 << 2)
+		};
+	};
+
 	void MyScene::SetVisualisation()
 	{
 		px_scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
@@ -125,15 +135,15 @@ namespace PhysicsEngine
 		if (ready && !BallMovingCheck(angularVel) && !clubPosUpdated)
 		{
 			checkpointPosition = ballPosition;
-			club->MoveActor(PxVec3(clubPosition.x, clubPosition.y, checkpointPosition.z + 1.5));
+			club->MoveActor(PxVec3(clubPosition.x, clubPosition.y, checkpointPosition.z + 1.5f));
 			clubPosUpdated = true;
 		}
 	}
 
 	void MyScene::CustomInit()
 	{
+		strokesTaken = 0;
 		levelComplete = false;
-		checkpointPosition = startPosition;
 
 		SetVisualisation();
 
@@ -149,16 +159,9 @@ namespace PhysicsEngine
 		plane->SetColour(PxVec3(209.f / 255.f, 198.f / 255.f, 177.f / 255.f));
 		Add(plane);
 
-		// Set golf club
-		vector<PxBoxGeometry> clubParts = { PxBoxGeometry(PxVec3(.5f, 4.5f, .2f)), PxBoxGeometry(PxVec3(.8f, 1.f, .5f)), PxBoxGeometry(2.5f, .5f, .5f) };
-		vector<PxVec3> clubLocalPoses = { PxVec3(-4.7f, 0.f, 0.f), PxVec3(-4.7f, 3.f, 0.f), PxVec3(-2.8f, -4.25f, 0.f) };
-		vector<PxReal> clubShapeDensities = { 1.f, 1.f, .8f };
-		clubPosition = PxVec3(2.5f, 65.1f, 2.f);
-		club = new GolfClub(clubParts, clubLocalPoses, clubShapeDensities, level_colours[4], clubPosition);
-		club->AddToScene(this);
-
 		//create the level and ball types
 		SetLevel();
+		checkpointPosition = startPosition;
 
 		//add default ball to scene on first run
 		if (firstRun)
@@ -170,6 +173,11 @@ namespace PhysicsEngine
 			AddAggregate(*activeGolfBall);
 			firstRun = false;
 		}
+
+		// Setup collisions and filtering
+		club->SetupFiltering(FilterGroup::eCLUB, FilterGroup::eBALL | FilterGroup::eRPIN, 2);
+		golfBall->SetupFiltering(FilterGroup::eBALL, FilterGroup::eCLUB, 0);
+		rollingPin->SetupFiltering(FilterGroup::eRPIN, FilterGroup::eCLUB, 0);
 	}
 
 	void MyScene::CreateBall(PxVec3 position, PxMaterial* material, PxVec3 colour, string name, PxReal damping)
@@ -192,27 +200,54 @@ namespace PhysicsEngine
 
 	void MyScene::SetLevel()
 	{
-		PxVec3 trackSize = PxVec3(10.f, .0f, 80.f);
+		// Set initial variables for level
+		PxVec3 trackSize = PxVec3(10.f, 30.f, 80.f);
 		PxVec3 trackPos = PxVec3(0.f, 3.f, -70.f);
-		PxReal trackHeight = 30.f;
+		PxReal trackHeight = trackSize.y + trackPos.y;
+		holePosition = PxVec3(trackPos.x, trackHeight + .1f, -abs(trackPos.z * 2));
+		startPosition = PxVec3(trackPos.x, trackHeight + .7f, 0.f);
 		PxVec3* holeLoc = &holePosition;
 
 		vector<PxVec3> trackColours = { level_colours[5], level_colours[4] };
 		vector<PxVec3> flagColours = { level_colours[4], level_colours[2] };
 		vector<PxVec3> spinnerColours = { level_colours[4], level_colours[3] };
 
+		// Club shape order - shaft, handle, bottom
+		clubPosition = PxVec3(startPosition.x + 2.5f, trackHeight + 5.1f, startPosition.z + 2.f);
+		vector<PxBoxGeometry> clubParts = { PxBoxGeometry(PxVec3(.5f, 4.5f, .2f)), PxBoxGeometry(PxVec3(.8f, 1.f, .5f)), PxBoxGeometry(2.5f, .5f, .5f) };
+		vector<PxVec3> clubLocalPoses = { PxVec3(-4.7f, 0.f, 0.f), PxVec3(-4.7f, 3.f, 0.f), PxVec3(-2.8f, -4.25f, 0.f) };
+		vector<PxReal> clubShapeDensities = { 1.f, 1.f, .8f };
+
+		PxVec3 flagPose = PxVec3(holeLoc->x, holeLoc->y + 13.f, holeLoc->z);
+
+		PxReal spinnerSpeed = -1.f;
+		PxVec3 spinnerPose1 = PxVec3(trackPos.x, trackHeight, -20.f);
+		PxVec3 spinnerPose2 = PxVec3(spinnerPose1.x, spinnerPose1.y, spinnerPose1.z - 60.f);
+		PxReal spinnerXSize = trackSize.x - .6f;
+		PxVec3 spbSize = PxVec3(spinnerXSize, 3.f, .5f);
+		PxVec3 sphLocalPose = PxVec3(spinnerXSize, 3.f, 0.f);
+
+		// Set golf club
+		club = new GolfClub(clubParts, clubLocalPoses, clubShapeDensities, level_colours[4], PxTransform(clubPosition));
+		Add(club);
+
 		// Tee box
-		tee = new StaticBox(PxTransform(PxVec3(0.f, 60.1f, 0.f)), PxVec3(1.f, .05f, 1.f));
+		tee = new StaticBox(PxTransform(PxVec3(trackPos.x, trackHeight + .1f, 0.f)), PxVec3(1.f, .05f, 1.f));
 		tee->SetColour(level_colours[4]);
 		Add(tee);
 
 		// Counter top
-		track1 = new StraightTrack(trackColours, trackSize, trackPos, trackHeight);
-		track1->AddToScene(this);
+		track1Floor = new TrackFloor(trackColours[0], trackSize, PxTransform(trackPos));
+		track1Walls = new TrackWalls(trackColours[1], trackSize, PxTransform(trackPos));
+		Add(track1Floor);
+		Add(track1Walls);
 
 		// Hole and flag
-		flag = new Flag(flagColours, PxVec3(holeLoc->x, holeLoc->y + 13.f, holeLoc->z));
-		flag->AddToScene(this);
+		pole = new StaticBox(PxTransform(flagPose), PxVec3(.5f, 10.f, .5f));
+		pole->SetColour(flagColours[0]);
+		flag = new Flag(flagColours[1], PxTransform(flagPose.operator+(PxVec3(0.f, .6f, 0.f)), PxQuat(PxHalfPi, PxVec3(0, 0, 1))), PxVec2(8.f, 8.f), 40, 40);
+		Add(pole);
+		Add(flag);
 
 		goalHole = new StaticBox(PxTransform(*holeLoc), PxVec3(2.5f, .15f, 2.5f));
 		goalHole->SetColour(level_colours[4]);
@@ -221,11 +256,17 @@ namespace PhysicsEngine
 		Add(goalHole);
 
 		// Spinners
-		spinner1 = new Spinner(PxVec3(0.f, 31.5f, -20.f), 9.4f, PxVec2(.5f, 3.f), PxVec2(7.5f, 2.5f), -1.f, .5f, spinnerColours);
-		spinner1->AddToScene(this);
+		spb1 = new SpinnerBlade(PxTransform(spinnerPose1), spbSize, spinnerColours[1]);
+		sph1 = new SpinnerHandles(PxTransform(spinnerPose1), sphLocalPose, PxVec3(.5f, sphLocalPose.y, .5f), spinnerColours[0]);
+		spb2 = new SpinnerBlade(PxTransform(spinnerPose2), spbSize, spinnerColours[1]);
+		sph2 = new SpinnerHandles(PxTransform(spinnerPose2), sphLocalPose, PxVec3(.5f, sphLocalPose.y, .5f), spinnerColours[0]);
 
-		spinner2 = new Spinner(PxVec3(0.f, 31.5f, -80.f), 9.4f, PxVec2(.5f, 3.f), PxVec2(7.5f, 2.5f), -1.f, .5f, spinnerColours);
-		spinner2->AddToScene(this);
+		spj1 = new RevoluteJoint(sph1, PxTransform(PxVec3(0.f, trackPos.y, 0.f)), spb1, PxTransform(PxVec3(0.f, 0.f, 0.f)));
+		spj1->DriveVelocity(spinnerSpeed);
+		spj2 = new RevoluteJoint(sph2, PxTransform(PxVec3(0.f, trackPos.y, 0.f)), spb2, PxTransform(PxVec3(0.f, 0.f, 0.f)));
+		spj2->DriveVelocity(spinnerSpeed);
+
+		Add(sph1); Add(spb1);	Add(sph2); Add(spb2);
 	}
 
 	void MyScene::SetAggregateGolfBall()

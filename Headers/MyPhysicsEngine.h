@@ -11,10 +11,13 @@ namespace PhysicsEngine
 	class MyScene : public Scene
 	{
 		Plane* plane;
-		StaticBox *tee, *goalHole;
-		StraightTrack* track1;
+		StaticBox *tee, *goalHole, *pole;
+		TrackFloor* track1Floor;
+		TrackWalls* track1Walls;
 		Flag* flag;
-		Spinner *spinner1, *spinner2;
+		SpinnerHandles *sph1, *sph2;
+		SpinnerBlade *spb1, *spb2;
+		RevoluteJoint *spj1, *spj2;
 
 		MySimulationEventCallback* my_callback;
 		PxMaterial* ballMaterial = CreateMaterial(.2f, .4f, .1f); // sf, df, r
@@ -37,8 +40,8 @@ namespace PhysicsEngine
 	public:
 		GolfClub* club;
 		
-		PxVec3 holePosition = PxVec3(0.f, 60.1f, -140.f);
-		PxVec3 startPosition = PxVec3(0.f, 60.7f, 0.f);
+		PxVec3 startPosition;
+		PxVec3 holePosition;
 		PxVec3 ballPosition;
 		PxVec3 checkpointPosition;
 

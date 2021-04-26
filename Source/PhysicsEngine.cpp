@@ -181,13 +181,12 @@ namespace PhysicsEngine
 
 	void Actor::SetupFiltering(PxU32 filterGroup, PxU32 filterMask, PxU32 shape_index)
 	{
-		std::vector<PxShape*> shape_list = GetShapes(shape_index);
-		for (PxU32 i = 0; i < shape_list.size(); i++)
-			shape_list[i]->setSimulationFilterData(PxFilterData(filterGroup, filterMask, 0, 0));
-
 		// PxFilterData(word0, word1, 0, 0)
 		// word0 = own ID
 		// word1 = ID mask to filter pairs that trigger a contact callback
+		std::vector<PxShape*> shape_list = GetShapes(shape_index);
+		for (PxU32 i = 0; i < shape_list.size(); i++)
+			shape_list[i]->setSimulationFilterData(PxFilterData(filterGroup, filterMask, 0, 0));
 	}
 
 	void Actor::Name(const string& new_name)
@@ -252,6 +251,13 @@ namespace PhysicsEngine
 	PxVec3 DynamicActor::GetAngularVelocity()
 	{
 		return ((PxRigidDynamic*)actor)->getAngularVelocity();
+	}
+
+	void DynamicActor::MoveActor(PxVec3 position)
+	{
+		((PxRigidDynamic*)actor)->setGlobalPose(PxTransform(position));
+		((PxRigidDynamic*)actor)->putToSleep();
+		((PxRigidDynamic*)actor)->wakeUp();
 	}
 
 	StaticActor::StaticActor(const PxTransform& pose)

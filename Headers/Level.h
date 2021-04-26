@@ -2,52 +2,39 @@
 
 namespace PhysicsEngine
 {
-	class StraightTrack
+	class TrackFloor : public StaticActor
 	{
-		StaticActor* track;
-
 	public:
-		StaticActor* trackWalls;
-
-		StraightTrack(vector<PxVec3> colours, PxVec3 size, PxVec3 pose, PxReal height = 1.f, PxReal density = 1.f);
-
-		void AddToScene(Scene* scene);
+		TrackFloor(PxVec3 colour, PxVec3 size, PxTransform& pose, PxReal density = 1.f);
 	};
 
-	class Flag
+	class TrackWalls : public StaticActor
 	{
 	public:
-		Cloth* flag;
-		StaticBox* pole;
-
-		Flag(vector<PxVec3> colours, PxVec3 pose);
-
-		void AddToScene(Scene* scene);
+		TrackWalls(PxVec3 colour, PxVec3 size, PxTransform& pose, PxReal density = 1.f);
 	};
 
-	class GolfClub
+	class Flag : public Cloth
 	{
 	public:
-		DynamicActor* club;
-
-		GolfClub(vector<PxBoxGeometry> shapes, vector<PxVec3> positions, vector<PxReal> shapeDensities, PxVec3 colour, PxVec3 mainPose);
-
-		void AddToScene(Scene* scene);
-
-		void MoveActor(PxVec3 position);
-
-		PxVec3 GetActorPosition();
+		Flag(PxVec3 colour, PxTransform& pose, PxVec2 size, PxU32 width, PxU32 height);
 	};
 
-	class Spinner
+	class GolfClub : public DynamicActor
 	{
-		DynamicActor* handles;
-		DynamicActor* blade;
-		RevoluteJoint* joint;
-
 	public:
-		Spinner(PxVec3 pose, PxReal handleXPose, PxVec2 handleSize, PxVec2 bladeSize, PxReal speed, PxReal thickness, vector<PxVec3> colours);
+		GolfClub(vector<PxBoxGeometry> shapes, vector<PxVec3> positions, vector<PxReal> shapeDensities, PxVec3 colour, PxTransform& mainPose);
+	};
 
-		void AddToScene(Scene* scene);
+	class SpinnerHandles : public DynamicActor
+	{
+	public:
+		SpinnerHandles(PxTransform& pose, PxVec3 size, PxVec3 localPose, PxVec3 colour);
+	};
+
+	class SpinnerBlade : public DynamicActor
+	{
+	public:
+		SpinnerBlade(PxTransform& pose, PxVec3 size, PxVec3 colour);
 	};
 }

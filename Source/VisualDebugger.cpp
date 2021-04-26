@@ -86,11 +86,11 @@ namespace VisualDebugger
 		Renderer::Init();
 
 		cameraDirection.x = 0.f;
-		cameraDirection.y = -.1f;
+		cameraDirection.y = -.2f;
 		cameraDirection.z = -1.f;
 		cameraDir = PxVec3(cameraDirection.x, cameraDirection.y, cameraDirection.z);
 
-		camera = new Camera(PxVec3(0.f, 70.f, 30.f), cameraDir, 25.f);
+		camera = new Camera(PxVec3(0.f, scene->startPosition.y + 14.f, 30.f), cameraDir, 25.f);
 
 		//initialise HUD
 		HUDInit();
@@ -154,7 +154,7 @@ namespace VisualDebugger
 		std::stringstream st;
 		st << std::fixed << std::setprecision(2) << strokes;
 
-		hud.AddLine(COMPLETE, " Level Complete!");
+		hud.AddLine(COMPLETE, " Level Complete! Congratulations!");
 		hud.AddLine(COMPLETE, "  Total strokes taken: " + st.str());
 		hud.AddLine(COMPLETE, "");
 		hud.AddLine(COMPLETE, " Press F1 to restart the level.");
@@ -221,6 +221,7 @@ namespace VisualDebugger
 			else if (scene->Customize())
 				hud.ActiveScreen(CUSTOMIZE);
 			else if (scene->levelComplete) {
+				hud.Clear(COMPLETE);
 				CompleteScreen(scene->strokesTaken);
 				hud.ActiveScreen(COMPLETE);
 				scene->Pause(true);

@@ -88,6 +88,8 @@ namespace PhysicsEngine
 		PxVec3 GetActorPosition();
 
 		PxVec3 GetAngularVelocity();
+
+		void MoveActor(PxVec3 position);
 	};
 
 	class StaticActor : public Actor
