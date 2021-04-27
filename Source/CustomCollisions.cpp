@@ -54,7 +54,7 @@ namespace PhysicsEngine
 	void MySimulationEventCallback::customTriggers(PxTriggerPair pair)
 	{
 		// Check that actor is valid
-		if (strcmp(pair.otherActor->getName(), "golfBall") == 0)
+		if (strcmp(pair.otherActor->getName(), "golfBall") == 0 || strcmp(pair.otherActor->getName(), "rollingPin") == 0)
 		{
 			// Check if goal has been reached
 			if (strcmp(pair.triggerActor->getName(), "Goal") == 0)
