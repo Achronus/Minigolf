@@ -341,7 +341,7 @@ namespace PhysicsEngine
 
 	PxAggregate* Scene::CreateAggregate(PxReal nbActors)
 	{
-		return physics->createAggregate(nbActors, false);
+		return physics->createAggregate(nbActors, true);
 	}
 
 	PxScene* Scene::Get() 

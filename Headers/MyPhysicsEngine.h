@@ -28,8 +28,7 @@ namespace PhysicsEngine
 
 		Sphere* golfBall;
 		Capsule* rollingPin;
-		PxAggregate* activeGolfBall;
-		PxAggregate* activeRollingPin;
+		PxAggregate *activeGolfBall, *activeRollingPin, *activeClub;
 		bool ballExists = false;
 
 		bool notIncreased = true; // Check for stroke counter increase
@@ -89,6 +88,9 @@ namespace PhysicsEngine
 
 		void CreateRollingPin(PxVec3 position, PxVec2 size, PxMaterial* material, PxVec3 colour, string name, PxReal damping);
 
+		//Create the golf club
+		void CreateGolfClub(PxVec3 position);
+
 		//create level
 		void SetLevel();
 
@@ -97,6 +99,9 @@ namespace PhysicsEngine
 
 		//create aggregate rolling pin
 		void SetAggregateRollingPin();
+
+		//create aggregate golf club
+		void SetAggregateGolfClub();
 
 		//update ball
 		virtual void UpdateBall(unsigned char key);

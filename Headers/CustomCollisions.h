@@ -5,9 +5,10 @@ namespace PhysicsEngine
 	///A customised collision class, implementing various callbacks
 	class MySimulationEventCallback : public PxSimulationEventCallback
 	{
+		bool inHole = false;
+
 	public:
 		bool trigger;
-		bool inHole = false;
 
 		MySimulationEventCallback() : trigger(false) {}
 
@@ -19,6 +20,8 @@ namespace PhysicsEngine
 
 		//Method called inside onTrigger that is used to handle custom triggers
 		void customTriggers(PxTriggerPair pair);
+
+		bool getInHole();
 
 		virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
 		virtual void onWake(PxActor** actors, PxU32 count) {}

@@ -26,6 +26,11 @@ namespace PhysicsEngine
 		}
 	}
 
+	bool MySimulationEventCallback::getInHole()
+	{
+		return inHole;
+	}
+
 	void MySimulationEventCallback::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
 	{
 		cerr << "Contact found between " << pairHeader.actors[0]->getName() << " " << pairHeader.actors[1]->getName() << endl;
@@ -64,6 +69,7 @@ namespace PhysicsEngine
 		PxFilterObjectAttributes attributes1, PxFilterData filterData1,
 		PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
 	{
+
 		// let triggers through
 		if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
 		{
@@ -71,23 +77,25 @@ namespace PhysicsEngine
 			return PxFilterFlags();
 		}
 
-		pairFlags = PxPairFlag::eCONTACT_DEFAULT;
 		//enable continous collision detection
-		//pairFlags |= PxPairFlag::eCCD_LINEAR;
-
-		//customise collision filtering here
-		//e.g.
+		pairFlags |= PxPairFlag::eCONTACT_DEFAULT;
+		pairFlags |= PxPairFlag::eSOLVE_CONTACT;
+		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_PERSISTS;
+		pairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS;
 
 		// trigger the contact callback for pairs (A,B) where 
 		// the filtermask of A contains the ID of B and vice versa.
 		if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
 		{
+			cout << filterData0.word0 << endl;
+
 			//trigger onContact callback for this pair of objects
 			pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 			pairFlags |= PxPairFlag::eNOTIFY_TOUCH_LOST;
-			//			pairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS;
+			pairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS;
 		}
 
 		return PxFilterFlags();
+		//return PxFilterFlag::eDEFAULT;
 	}
 }

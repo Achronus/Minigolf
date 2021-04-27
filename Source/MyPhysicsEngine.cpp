@@ -36,6 +36,11 @@ namespace PhysicsEngine
 	{
 		px_scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
 		px_scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
+
+		px_scene->setVisualizationParameter(PxVisualizationParameter::eCLOTH_HORIZONTAL, 1.0f);
+		px_scene->setVisualizationParameter(PxVisualizationParameter::eCLOTH_VERTICAL, 1.0f);
+		px_scene->setVisualizationParameter(PxVisualizationParameter::eCLOTH_BENDING, 1.0f);
+		px_scene->setVisualizationParameter(PxVisualizationParameter::eCLOTH_SHEARING, 1.0f);
 	}
 
 	PxVec3 MyScene::getActorPosition()
@@ -122,6 +127,7 @@ namespace PhysicsEngine
 			notIncreased = false;
 			clubPosUpdated = false;
 			forceStop = true;
+			RemoveAggregate(*activeClub);
 		}
 		else if (!BallMovingCheck(angularVel) && !changingBall)
 		{
@@ -129,12 +135,13 @@ namespace PhysicsEngine
 		}
 
 		// Check for hole trigger
-		levelComplete = my_callback->inHole;
+		levelComplete = my_callback->getInHole();
 
 		// Update checkpoint position
 		if (ready && !BallMovingCheck(angularVel) && !clubPosUpdated)
 		{
 			checkpointPosition = ballPosition;
+			AddAggregate(*activeClub);
 			club->MoveActor(PxVec3(clubPosition.x, clubPosition.y, checkpointPosition.z + 1.5f));
 			clubPosUpdated = true;
 		}
@@ -153,6 +160,7 @@ namespace PhysicsEngine
 		///Initialise and set the customised event callback
 		my_callback = new MySimulationEventCallback();
 		px_scene->setSimulationEventCallback(my_callback);
+		filter_shader = my_callback->CustomFilterShader;
 
 		//create and add plane to scene
 		plane = new Plane();
@@ -170,14 +178,13 @@ namespace PhysicsEngine
 			SetAggregateRollingPin();
 			SetAggregateGolfBall();
 			RemoveAggregate(*activeRollingPin);
-			AddAggregate(*activeGolfBall);
 			firstRun = false;
 		}
 
-		// Setup collisions and filtering
-		club->SetupFiltering(FilterGroup::eCLUB, FilterGroup::eBALL | FilterGroup::eRPIN, 2);
-		golfBall->SetupFiltering(FilterGroup::eBALL, FilterGroup::eCLUB, 0);
-		rollingPin->SetupFiltering(FilterGroup::eRPIN, FilterGroup::eCLUB, 0);
+		// Setup filtering
+		club->SetupFiltering(FilterGroup::eCLUB, FilterGroup::eBALL | FilterGroup::eRPIN);
+		golfBall->SetupFiltering(FilterGroup::eBALL, FilterGroup::eCLUB);
+		rollingPin->SetupFiltering(FilterGroup::eRPIN, FilterGroup::eCLUB);
 	}
 
 	void MyScene::CreateBall(PxVec3 position, PxMaterial* material, PxVec3 colour, string name, PxReal damping)
@@ -198,6 +205,14 @@ namespace PhysicsEngine
 		rollingPin->SetDamping(damping);
 	}
 
+	void MyScene::CreateGolfClub(PxVec3 position)
+	{
+		vector<PxBoxGeometry> clubParts = { PxBoxGeometry(PxVec3(.5f, 4.5f, .2f)), PxBoxGeometry(PxVec3(.8f, 1.f, .5f)), PxBoxGeometry(2.5f, .5f, .5f) };
+		vector<PxVec3> clubLocalPoses = { PxVec3(-4.7f, 0.f, 0.f), PxVec3(-4.7f, 3.f, 0.f), PxVec3(-2.8f, -4.25f, 0.f) };
+		vector<PxReal> clubShapeDensities = { 1.f, 1.f, .8f };
+		club = new GolfClub(clubParts, clubLocalPoses, clubShapeDensities, level_colours[4], PxTransform(position));
+	}
+
 	void MyScene::SetLevel()
 	{
 		// Set initial variables for level
@@ -212,12 +227,6 @@ namespace PhysicsEngine
 		vector<PxVec3> flagColours = { level_colours[4], level_colours[2] };
 		vector<PxVec3> spinnerColours = { level_colours[4], level_colours[3] };
 
-		// Club shape order - shaft, handle, bottom
-		clubPosition = PxVec3(startPosition.x + 2.5f, trackHeight + 5.1f, startPosition.z + 2.f);
-		vector<PxBoxGeometry> clubParts = { PxBoxGeometry(PxVec3(.5f, 4.5f, .2f)), PxBoxGeometry(PxVec3(.8f, 1.f, .5f)), PxBoxGeometry(2.5f, .5f, .5f) };
-		vector<PxVec3> clubLocalPoses = { PxVec3(-4.7f, 0.f, 0.f), PxVec3(-4.7f, 3.f, 0.f), PxVec3(-2.8f, -4.25f, 0.f) };
-		vector<PxReal> clubShapeDensities = { 1.f, 1.f, .8f };
-
 		PxVec3 flagPose = PxVec3(holeLoc->x, holeLoc->y + 13.f, holeLoc->z);
 
 		PxReal spinnerSpeed = -1.f;
@@ -228,8 +237,9 @@ namespace PhysicsEngine
 		PxVec3 sphLocalPose = PxVec3(spinnerXSize, 3.f, 0.f);
 
 		// Set golf club
-		club = new GolfClub(clubParts, clubLocalPoses, clubShapeDensities, level_colours[4], PxTransform(clubPosition));
-		Add(club);
+		// Club shape order - shaft, handle, bottom
+		clubPosition = PxVec3(startPosition.x + 2.5f, trackHeight + 5.1f, startPosition.z + 2.f);
+		SetAggregateGolfClub();
 
 		// Tee box
 		tee = new StaticBox(PxTransform(PxVec3(trackPos.x, trackHeight + .1f, 0.f)), PxVec3(1.f, .05f, 1.f));
@@ -285,6 +295,14 @@ namespace PhysicsEngine
 		activeRollingPin->addActor(*rollingPin->Get());
 		AddAggregate(*activeRollingPin);
 		ballExists = true;
+	}
+
+	void MyScene::SetAggregateGolfClub()
+	{
+		activeClub = CreateAggregate(2);
+		CreateGolfClub(clubPosition);
+		activeClub->addActor(*club->Get());
+		AddAggregate(*activeClub);
 	}
 
 	void MyScene::UpdateBall(unsigned char key) {

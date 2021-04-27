@@ -295,7 +295,7 @@ namespace VisualDebugger
 				// Force controls on the selected actor
 			case 'I': //forward
 				scene->GetSelectedActor()->addTorque(PxVec3(-1, 0, 0) * (swingStr * gForceStr));
-				scene->GetSelectedActor()->addForce(PxVec3(-1, 0, 0) * gForceStr);
+				scene->GetSelectedActor()->addForce(PxVec3(-1, 0, 0) * (gForceStr * 10));
 				break;
 			case 'K': //backward
 				scene->GetSelectedActor()->addTorque(PxVec3(1, 0, 0) * (swingStr * gForceStr));
