@@ -43,13 +43,6 @@ namespace PhysicsEngine
 		px_scene->setVisualizationParameter(PxVisualizationParameter::eCLOTH_SHEARING, 1.0f);
 	}
 
-	PxVec3 MyScene::getActorPosition()
-	{
-		PxVec3 actor = ((PxRigidDynamic*)golfBall)->getGlobalPose().p;
-		printf("actor_pos=%fx, %fy, %fz\n", actor.x, actor.y, actor.z);
-		return actor;
-	}
-
 	void MyScene::SetAngularVelocity()
 	{
 		angularVel = PxVec3(0.f);
@@ -60,19 +53,44 @@ namespace PhysicsEngine
 		return angularVel;
 	}
 
-	void MyScene::printLinearVelocity()
+	PxVec3 MyScene::GetStartPos()
 	{
-		printf("linear_velocity=%fx, %fy, %fz\n", linearVel.x, linearVel.y, linearVel.z);
+		return startPosition;
 	}
 
-	void MyScene::printAngularVelocity()
+	PxVec3 MyScene::GetBallPos()
 	{
-		printf("angular_velocity=%fx, %fy, %fz\n", angularVel.x, angularVel.y, angularVel.z);
+		return ballPosition;
 	}
 
-	void MyScene::printBallPosition(PxVec3 position)
+	int MyScene::GetStrokesTaken()
 	{
-		printf("BallPosition: x=%f, y=%f, z=%f\n", position.x, position.y, position.z);
+		return strokesTaken;
+	}
+
+	float MyScene::GetHoleDistance()
+	{
+		return distanceToHole;
+	}
+
+	float MyScene::GetBallSpeed()
+	{
+		return ballSpeed;
+	}
+
+	bool MyScene::GetReady()
+	{
+		return ready;
+	}
+
+	void MyScene::SetFirstRun(bool value)
+	{
+		firstRun = value;
+	}
+
+	bool MyScene::GetLevelComplete()
+	{
+		return levelComplete;
 	}
 
 	void MyScene::CustomUpdate()
@@ -95,8 +113,6 @@ namespace PhysicsEngine
 			angularVel = golfBall->GetAngularVelocity();
 			ballName = "golfBall";
 			ForceStop(golfBall->Get());
-			//printAngularVelocity();
-			//printBallPosition(ballPosition);
 		}
 		else if (std::find(activeActorNames.begin(), activeActorNames.end(), "rollingPin") != activeActorNames.end())
 		{
@@ -104,8 +120,6 @@ namespace PhysicsEngine
 			angularVel = rollingPin->GetAngularVelocity();
 			ballName = "rollingPin";
 			ForceStop(rollingPin->Get());
-			//printAngularVelocity();
-			//printBallPosition(ballPosition);
 		}
 		activeActorNames.clear(); // reset names in vector
 

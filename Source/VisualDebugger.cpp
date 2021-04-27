@@ -90,7 +90,7 @@ namespace VisualDebugger
 		cameraDirection.z = -1.f;
 		cameraDir = PxVec3(cameraDirection.x, cameraDirection.y, cameraDirection.z);
 
-		camera = new Camera(PxVec3(0.f, scene->startPosition.y + 14.f, 30.f), cameraDir, 25.f);
+		camera = new Camera(PxVec3(0.f, scene->GetStartPos().y + 14.f, 30.f), cameraDir, 25.f);
 
 		//initialise HUD
 		HUDInit();
@@ -166,14 +166,14 @@ namespace VisualDebugger
 		//add an empty screen
 		hud.AddLine(EMPTY, "");
 		//add a help screen
-		HelpScreen(scene->strokesTaken, scene->distanceToHole, scene->ballSpeed);
+		HelpScreen(scene->GetStrokesTaken(), scene->GetHoleDistance(), scene->GetBallSpeed());
 		//add a pause screen
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "");
 		hud.AddLine(PAUSE, "   Simulation paused. Press F3 to continue.");
 		//add level complete screen
-		CompleteScreen(scene->strokesTaken);
+		CompleteScreen(scene->GetStrokesTaken());
 		//add a customize screen
 		hud.AddLine(CUSTOMIZE, " Styles");
 		hud.AddLine(CUSTOMIZE, "    1 - default");
@@ -216,20 +216,20 @@ namespace VisualDebugger
 		//adjust the HUD state
 		if (hud_show)
 		{
-			if (scene->Pause() && !scene->levelComplete)
+			if (scene->Pause() && !scene->GetLevelComplete())
 				hud.ActiveScreen(PAUSE);
 			else if (scene->Customize())
 				hud.ActiveScreen(CUSTOMIZE);
-			else if (scene->levelComplete) {
+			else if (scene->GetLevelComplete()) {
 				hud.Clear(COMPLETE);
-				CompleteScreen(scene->strokesTaken);
+				CompleteScreen(scene->GetStrokesTaken());
 				hud.ActiveScreen(COMPLETE);
 				scene->Pause(true);
 			}
 			else {
 				// Reset stats in help screen every iteration
 				hud.Clear(HELP);
-				HelpScreen(scene->strokesTaken, scene->distanceToHole, scene->ballSpeed);
+				HelpScreen(scene->GetStrokesTaken(), scene->GetHoleDistance(), scene->GetBallSpeed());
 				hud.ActiveScreen(HELP);
 			}
 		}
@@ -246,10 +246,11 @@ namespace VisualDebugger
 		scene->Update(delta_time);
 
 		//follow ball when toggle active
+		PxVec3 ballPos = scene->GetBallPos();
 		ballEye = PxVec3(
-			scene->ballPosition.x, 
-			scene->ballPosition.y + 7.3f, 
-			scene->ballPosition.z + 20.f
+			ballPos.x, 
+			ballPos.y + 7.3f, 
+			ballPos.z + 20.f
 		);
 		camera->FollowBall(ballEye);
 	}
@@ -288,7 +289,7 @@ namespace VisualDebugger
 		if (!scene->GetSelectedActor())
 			return;
 
-		if (scene->ready)
+		if (scene->GetReady())
 		{
 			switch (toupper(key))
 			{
@@ -333,7 +334,7 @@ namespace VisualDebugger
 			//simulation control
 			case GLUT_KEY_F1:
 				//reset scene
-				scene->firstRun = true;
+				scene->SetFirstRun(true);
 				scene->Reset();
 				break;
 			case GLUT_KEY_F2:

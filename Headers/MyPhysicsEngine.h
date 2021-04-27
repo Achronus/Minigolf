@@ -28,6 +28,7 @@ namespace PhysicsEngine
 
 		Sphere* golfBall;
 		Capsule* rollingPin;
+		GolfClub* club;
 		PxAggregate *activeGolfBall, *activeRollingPin, *activeClub;
 		bool ballExists = false;
 
@@ -35,23 +36,21 @@ namespace PhysicsEngine
 		PxVec3 clubPosition;
 		bool clubPosUpdated = false;
 		float threshold = 0.15f; // ready check
-
-	public:
-		GolfClub* club;
 		
-		PxVec3 startPosition;
 		PxVec3 holePosition;
-		PxVec3 ballPosition;
 		PxVec3 checkpointPosition;
+		PxVec3 startPosition;
+		PxVec3 ballPosition;
 
 		int strokesTaken = 0;
 		double distanceToHole = 0.f;
 		double ballSpeed = 0.f;
+		bool forceStop = true;
 		bool ready = true;
 		bool firstRun = true;
 		bool levelComplete = false;
-		bool forceStop = true;
 
+	public:
 		//specify your custom filter shader here
 		//PxDefaultSimulationFilterShader by default
 		MyScene() : Scene() {};
@@ -59,23 +58,35 @@ namespace PhysicsEngine
 		///A custom scene class
 		void SetVisualisation();
 
-		//Return actor position and print it to the console
-		PxVec3 getActorPosition();
-
 		//Set the angular velocity
 		void SetAngularVelocity();
 
 		//Return angular velocity
 		PxVec3 GetAngularVelocity();
 
-		//Print linear velocity to console
-		void printLinearVelocity();
+		//Return start position
+		PxVec3 GetStartPos();
 
-		//Print angular velocity to console
-		void printAngularVelocity();
+		//Return ball position
+		PxVec3 GetBallPos();
 
-		//Print ball position to console
-		void printBallPosition(PxVec3 position);
+		//Return strokes taken
+		int GetStrokesTaken();
+
+		//Return distance to hole
+		float GetHoleDistance();
+
+		//Return ball speed
+		float GetBallSpeed();
+
+		//Return ready flag
+		bool GetReady();
+
+		//Set first run flag
+		void SetFirstRun(bool value);
+
+		//Return level complete flag
+		bool GetLevelComplete();
 
 		//Custom update function
 		virtual void CustomUpdate();
